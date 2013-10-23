@@ -1,0 +1,30 @@
+<div class="main account">
+<div class="content">
+<h3></h3>
+
+<div class="user-details">
+	<img src="{{{gravatar user.email 160}}}" width="160" height="160">
+	{{#if user.name}}<p><strong>{{user.name}}</strong></p>{{/if}}
+	<p>{{user.email}}</p>
+	<p>Member since: {{date user.created}}</p>
+
+</div>
+	{{#if user.accounts.twitter}}
+		<a class="button-gray">Connected Twitter</a>
+	{{else}}
+		<a href="/auth/twitter" class="button-blue">Connect Twitter</a>
+	{{/if}}
+	{{#if user.accounts.facebook}}
+		<a class="button-gray">Connected Facebook</a>
+	{{else}}
+		<a href="/auth/facebook" class="button-blue">Connect Facebook</a>
+	{{/if}}
+
+	<p><a href="/account/delete/{{user.id}}" class="delete-link button-red">Delete Account</a></p>
+</div>
+</div>
+
+
+{{#extend "scripts"}}
+
+{{/extend}}

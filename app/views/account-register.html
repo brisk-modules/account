@@ -1,0 +1,19 @@
+{{#extend "styles"}}
+{{/extend}}
+
+<div class="frame login-box">
+<h3>Register Account</h3>
+<form class="app-login" action="/account/register" method="POST">
+	<input type="text" name="name" placeholder="Full Name" required>
+	<input type="email" name="email" placeholder="Email" required>
+	<input type="password" name="password" placeholder="Password" required>
+	<input type="password" name="password_confirm" placeholder="Confirm Password" required>
+	<input type="submit" value="Submit">
+</form>
+
+<p><a href="/auth/twitter" class="small blue button">Signup with Twitter</a></p>
+</div>
+
+{{#extend "scripts"}}
+<script type="text/javascript" src="/assets/js/main.js"></script>
+{{/extend}}

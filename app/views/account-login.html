@@ -1,0 +1,24 @@
+{{#extend "styles"}}
+{{/extend}}
+<div class="main">
+<div class="hero">
+	<div class="centerframe">
+	<div class="centerframe-inner">
+		<h3>Login</h3>
+		<form class="app-login" action="/account/login" method="POST">
+		<div style="text-align: center; width: 240px; margin: 0 auto">
+			<input type="email" name="email" placeholder="Email" required>
+			<input type="password" name="password" placeholder="Password" required>
+			<input type="submit" class="button-blue" value="submit">
+		</div>
+		</form>
+		<hr>
+		<p><a href="/auth/twitter" class="button-blue button-icon"><i aria-hidden="true" data-icon="#"></i> signup with twitter</a></p>
+		<p><a href="/auth/facebook" class="button-blue button-icon"><i aria-hidden="true" data-icon="!"></i> signup with facebook</a></p>
+	</div>
+	</div>
+</div>
+</div>
+{{#extend "scripts"}}
+<script type="text/javascript" src="/assets/js/main.js"></script>
+{{/extend}}

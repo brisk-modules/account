@@ -1,0 +1,23 @@
+{{#extend "styles"}}
+{{/extend}}
+<div class="main">
+<div class="hero">
+	<div class="centerframe">
+	<div class="centerframe-inner">
+		<h3>Complete your account:</h3>
+		<form class="app-login" action="/account/complete" method="POST">
+			{{#if noEmail}}
+			<input type="email" name="email" placeholder="Email" required>
+			{{/if}}
+			<input type="password" id="password" name="password" placeholder="Password" required>
+			<input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm Password" required>
+			<input type="submit" value="Submit">
+		</form>
+		<p><a href="/account/login" class="small blue button" title="Click to login...">Already completed account?</a></p>
+	</div>
+	</div>
+</div>
+</div>
+{{#extend "scripts"}}
+<script type="text/javascript" src="/assets/js/main.js"></script>
+{{/extend}}
