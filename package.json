@@ -26,6 +26,10 @@
 	"dependencies": {
 		"bcrypt": "0.7.x",
 		"brisk": "0.x",
+		"passport": "0.x",
+		"passport-twitter": "0.x",
+		"passport-local": "0.x",
+		"passport-facebook": "0.1.x",
 		"underscore": "1.x"
 	}
 }
