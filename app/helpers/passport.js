@@ -6,32 +6,30 @@ var passport = require("passport"),
 	FacebookStrategy = require('passport-facebook').Strategy,
 	Main = require("brisk").getClass("main");
 
-var User;
-
 var helper = Main.extend({
 
 	init: function( site ){
 
 		var api = site.config.api;
 
-		User = site.models.user;
+		this.model = site.models.user;
 
 		// Use the LocalStrategy within Passport.
 		passport.use(new LocalStrategy({
 				usernameField: 'email'
-			}, this.local));
+			}, _.bind(this.local, this) ));
 
 		passport.use(new TwitterStrategy({
 			consumerKey: api.twitter.key,
 			consumerSecret: api.twitter.secret,
 			callbackURL: site.config.url +"/auth/callback/service/twitter"
-			}, this.twitter));
+			}, _.bind(this.twitter, this) ));
 
 		passport.use(new FacebookStrategy({
 			clientID: api.facebook.key,
 			clientSecret: api.facebook.secret,
 			callbackURL: site.config.url +"/auth/callback/service/facebook"
-		}, this.facebook));
+		}, _.bind(this.facebook, this) ));
 
 		// Helpers
 		passport.serializeUser(function(user, done) {
