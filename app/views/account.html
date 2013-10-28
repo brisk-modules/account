@@ -3,10 +3,9 @@
 <h3></h3>
 
 <div class="user-details">
-	<img src="{{{gravatar user.email 160}}}" width="160" height="160">
 	{{#if user.name}}<p><strong>{{user.name}}</strong></p>{{/if}}
 	<p>{{user.email}}</p>
-	<p>Member since: {{date user.created}}</p>
+	<p>Member since: {{user.created}}</p>
 
 </div>
 	{{#if user.accounts.twitter}}
