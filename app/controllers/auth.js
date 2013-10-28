@@ -26,7 +26,7 @@ var controller = Parent.extend({
 			if( info.isNew ){
 
 				if( typeof req.user == "undefined" ){
-					// first create the use
+					// first create the user
 					User.create(user,
 					function( err, result ) {
 						if(err) {throw err;}
@@ -47,9 +47,9 @@ var controller = Parent.extend({
 					data.accounts[service] = user.accounts[service];
 					// update db
 					User.update(data,
-					function( err, result ) {
-						if(err) {throw err;}
-						return res.redirect('/');
+						function( err, result ) {
+							if(err) {throw err;}
+							return res.redirect('/');
 					});
 				}
 
@@ -63,7 +63,7 @@ var controller = Parent.extend({
 					});
 
 				} else {
-					// already logged in  and no new information...
+					// already logged in and no new information...
 					return res.redirect('/');
 				}
 			}
