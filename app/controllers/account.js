@@ -15,6 +15,8 @@ var controller = Parent.extend({
 
 	// login to an existing account
 	login : function(req, res){
+		// if authenticated redirect to the homepage
+		if( this.isAuthenticated(req, res) ) return res.redirect('/');
 
 		switch( req.method ){
 			case "GET":
