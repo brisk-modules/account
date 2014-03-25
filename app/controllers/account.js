@@ -4,6 +4,8 @@ var _ = require('underscore'),
 	Parent = brisk.getBaseController("main");
 
 var controller = Parent.extend({
+	name: "account",
+
 	index : function(req, res){
 
 		this.ensureAuthenticated(req, res);
