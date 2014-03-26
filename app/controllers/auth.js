@@ -3,6 +3,7 @@ var brisk = require("brisk"),
 	Parent = brisk.getBaseController("main");
 
 var controller = Parent.extend({
+	name: "auth",
 
 	index: function(req, res){
 		// ...
