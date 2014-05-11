@@ -84,7 +84,6 @@ var controller = Parent.extend({
 				// filter data
 				delete data.password_confirm;
 				// update password
-				data.email = data.email;
 				data.password = bcrypt.hashSync( data.password, 10 );
 				// add date attributes
 				data.created = data.updated = (new Date()).getTime();
@@ -110,6 +109,52 @@ var controller = Parent.extend({
 
 	// create user account
 	register : function(req, res){
+
+		// this auth state is a bit peculiar  at this page
+		// we accept users that are logged in but have no password
+		// get user
+		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		// straight to the dashboard if there is already an email/pass
+		if(user && user.password ) return res.redirect('/');
+
+		switch( req.method ){
+			case "GET":
+
+				res.view = "account-register";
+				// render
+				this.render( req, res );
+
+			break;
+			case "POST":
+
+				var db = req.site.models.user;
+				var passport = req.site.helpers.passport.self();
+				// update the existing user model
+				// validate response first... (use set() instead)
+				var data = _.extend( (new db.schema()), req.body );
+				// filter data
+				delete data.password_confirm;
+				// update password
+				data.password = bcrypt.hashSync( data.password, 10 );
+				// add date attributes
+				data.created = data.updated = (new Date()).getTime();
+
+				db.update(data, function(){
+
+					// verify data - update session:
+					passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
+						// on error display this
+						console.log(error);
+					});
+
+				});
+
+			break;
+			default:
+				// else redirect to the homepage
+				res.redirect('/');
+			break;
+		}
 
 	},
 
