@@ -2,7 +2,7 @@
 
 Account management for Brisk
 
-## Install 
+## Install
 
 Using NPM
 ```
@@ -11,16 +11,33 @@ npm install brisk-account
 
 ## Controllers
 
+This extension has the following controllers ,each adding additional paths to your app:
+
 ### Account
 
-#### Endpoints: 
+This controller is used to authenticate against 3rd party providers.
+
+#### Endpoints
 
 ```
 account/login
 account/complete
+account/register
+account/delete
 ```
 
 ### Auth
+
+This controller is used to authenticate against 3rd party providers
+
+#### Endpoints
+
+These paths are optional and only active if the API details for each provider are available.
+
+```
+auth/facebook
+auth/twitter
+```
 
 
 ## Credits
