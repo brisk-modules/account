@@ -3,7 +3,7 @@
 
 <div class="main">
 <div class="hero">
-	<div class="centerframe">
+	<div class="centerframe container">
 	<div class="centerframe-inner">
 		<h3>Login</h3>
 		<form class="app-login" action="/account/login" method="POST">
@@ -15,11 +15,11 @@
 		</form>
 		<hr>
 		<p><a href="/account/register" class="btn button-blue" title="Click to register...">Sign up for an account</a></p>
-		{{#if useFacebook}}
-		<p><a href="/auth/twitter" class="btn button-tw"><i aria-hidden="true" data-icon="#"></i> signup with twitter</a></p>
+		{{#if useTwitter}}
+		<p><a href="/auth/twitter" class="btn button-tw button-icon"><i aria-hidden="true" data-icon="#"></i> signup with twitter</a></p>
 		{{/if}}
 		{{#if useFacebook}}
-		<p><a href="/auth/facebook" class="btn button-fb"><i aria-hidden="true" data-icon="!"></i> signup with facebook</a></p>
+		<p><a href="/auth/facebook" class="btn button-fb button-icon"><i aria-hidden="true" data-icon="!"></i> signup with facebook</a></p>
 		{{/if}}
 	</div>
 	</div>
