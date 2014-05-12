@@ -25,8 +25,11 @@ var controller = Parent.extend({
 			case "GET":
 
 				res.view = "account-login";
+				// local vars
+				res.locals.useFacebook = this._findAPI("facebook", req.site);
+				res.locals.useTwitter = this._findAPI("twitter", req.site);
+				//
 				this.render( req, res );
-				//this.main.render( res );
 
 			break;
 			case "POST":
@@ -122,6 +125,9 @@ var controller = Parent.extend({
 			case "GET":
 
 				res.view = "account-register";
+				// local vars
+				res.locals.useFacebook = this._findAPI("facebook", req.site);
+				res.locals.useTwitter = this._findAPI("twitter", req.site);
 				// render
 				this.render( req, res );
 
@@ -160,7 +166,7 @@ var controller = Parent.extend({
 	},
 
 	// delete user account
-	delete : function(req, res){
+	"delete" : function(req, res){
 
 		var self = this;
 		//
@@ -232,6 +238,15 @@ var controller = Parent.extend({
 	_userRelatedModels: function(){
 		// overwrite this with your custom logic
 		return [];
+	},
+
+	_findAPI: function( name, site){
+		try {
+			return (typeof site.config.api[name] == "object" );
+		} catch( e ) {
+			//( req.site.config.api.twitter )
+			return false;
+		}
 	}
 
 });

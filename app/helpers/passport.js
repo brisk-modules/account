@@ -10,7 +10,7 @@ var helper = Main.extend({
 
 	init: function( site ){
 
-		var api = site.config.api;
+		var api = site.config.api || {};
 
 		this.model = site.models.user;
 
@@ -19,17 +19,21 @@ var helper = Main.extend({
 				usernameField: 'email'
 			}, _.bind(this.local, this) ));
 
+		if( api.twitter ){
 		passport.use(new TwitterStrategy({
 			consumerKey: api.twitter.key,
 			consumerSecret: api.twitter.secret,
 			callbackURL: site.config.url +"/auth/callback/service/twitter"
 			}, _.bind(this.twitter, this) ));
+		}
 
+		if( api.facebook ){
 		passport.use(new FacebookStrategy({
 			clientID: api.facebook.key,
 			clientSecret: api.facebook.secret,
 			callbackURL: site.config.url +"/auth/callback/service/facebook"
 		}, _.bind(this.facebook, this) ));
+		}
 
 		// Helpers
 		passport.serializeUser(function(user, done) {
