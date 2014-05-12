@@ -1,7 +1,8 @@
 var _ = require('underscore'),
 	brisk = require("brisk"),
 	bcrypt = require("bcrypt"),
-	Parent = brisk.getBaseController("main");
+	Parent = brisk.getBaseController("main"),
+	async = require("async");
 
 var controller = Parent.extend({
 	name: "account",
@@ -162,81 +163,77 @@ var controller = Parent.extend({
 	delete : function(req, res){
 
 		var self = this;
-
-		this.ensureAuthenticated(req, res);
-
-		var user = ( typeof req.user != "undefined" ) ? req.user : false;
-		// databases
-		var users = req.site.models.user;
-		var gateways = req.site.models.gateway;
-		var products = req.site.models.product;
-
-		if( typeof req.query["_key"] != "string" ) return res.redirect('/account');
-
 		//
+		this.ensureAuthenticated(req, res);
+		// variables
+		var user = ( typeof req.user != "undefined" ) ? req.user : false;
 		var id = req.query["_key"];
 
-		// first read and verify the owner...
-		if(user.id != id) return;
-		// variables to monitor when all operations are completed
-		var doneGateways = doneProducts = false;
-		var done = function( type ){
+		// prerequisites
+		// - if no user. exit now
+		if( !user ) return res.redirect('/account');
+		// - verify the user id...
+		if( typeof id != "string" || user.id != id ) return res.redirect('/account');
 
-			switch( type ){
-				case "gateways":
-					doneGateways = true;
-				break;
-				case "products":
-					doneProducts = true;
-				break;
-			}
-			// check if we're all done
-			if( doneGateways && doneProducts && doneGateways==doneProducts )
-				return res.redirect('/logout');
+		// databases
+		var users = req.site.models.user;
+		var models = this._userRelatedModels();
+		var actions = [];
 
+		for( var i in models ){
+			var model = req.site.models[ models[i] ] || false;
+			if( !model ) continue;
+			// delete related data on this model
+			actions.push( this._deleteData( model ) );
 		}
-		// delete account
-		users.archive({ id : id }, { $set: { updated : "timestamp" } }, function(){
-			// error control?
 
-			// delete related products
-			products.read({ uid : id }, function( data ){
-				if( !data ) done( "products" );
+		actions.push(function(next){
+			// delete account
+			users.archive({ id : id }, { $set: { updated : "timestamp" } }, function(){
+				// error control?
+				return next(null);
+			});
+		});
+
+		// execute actions in sequence
+		async.series( actions,
+		function(err, results){
+			return res.redirect('/logout');
+		});
+
+	},
+
+	// Internal methods
+
+	_deleteData: function( model ){
+
+		return function( next ){
+
+			model.read({ uid : id }, function( data ){
+				if( !data ) next(null);
 				// convert to an array if returning a single object
 				data = (data instanceof Array) ? data : [data];
 				//
 				var count = 0;
 				for(var i in data){
-					products.archive({ id : data[i].id }, { $set: { updated : "timestamp", active : 0 } }, function(){
+					model.archive({ id : data[i].id }, { $set: { updated : "timestamp", active : 0 } }, function(){
 						count++;
 						//
-						if(count == data.length) done( "products" );
+						if(count == data.length) next(null);
 					});
 				}
 
 			});
 
-			// delete related gateways
-			gateways.read({ uid : id }, function( data ){
-				if( !data ) done( "gateways" );
-				// convert to an array if returning a single object
-				data = (data instanceof Array) ? data : [data];
-				//
-				var count = 0;
-				for(var j in data){
-					gateways.archive({ id : data[j].id }, { $set: { updated : "timestamp", active : 0 } }, function(){
-						count++;
-						//
-						if(count == data.length) done( "gateways" );
-					});
-				}
+		};
+	},
 
-			});
-
-		});
-
-
+	// - list models related with users
+	_userRelatedModels: function(){
+		// overwrite this with your custom logic
+		return [];
 	}
+
 });
 
 
