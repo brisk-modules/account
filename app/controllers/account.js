@@ -154,7 +154,7 @@ var controller = Parent.extend({
 
 					// first check if there's an existing user with that email
 					function( next ){
-						db.read({ email: data.email },
+						db.findOne({ email: data.email },
 						function( user ) {
 							// then try to login
 							if( user ){
