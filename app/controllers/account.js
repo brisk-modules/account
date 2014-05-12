@@ -94,6 +94,10 @@ var controller = Parent.extend({
 
 				db.update(data, function(){
 
+					// update the user
+					req.user.email = data.email;
+					req.user.password = data.password;
+
 					// verify data - update session:
 					passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
 						// on error display this
@@ -212,7 +216,7 @@ var controller = Parent.extend({
 		// - if no user. exit now
 		if( !user ) return res.redirect('/account');
 		// - verify the user id...
-		if( typeof id != "string" || user.id != id ) return res.redirect('/account');
+		if( typeof id !== "string" || user.id !== id ) return res.redirect('/account');
 
 		// databases
 		var users = req.site.models.user;
@@ -223,13 +227,14 @@ var controller = Parent.extend({
 			var model = req.site.models[ models[i] ] || false;
 			if( !model ) continue;
 			// delete related data on this model
-			actions.push( this._deleteData( model ) );
+			actions.push( this._deleteData( model, id ) );
 		}
 
 		actions.push(function(next){
 			// delete account
 			users.archive({ id : id }, { $set: { updated : "timestamp" } }, function(){
 				// error control?
+				 res.redirect('/logout');
 				return next(null);
 			});
 		});
@@ -237,14 +242,15 @@ var controller = Parent.extend({
 		// execute actions in sequence
 		async.series( actions,
 		function(err, results){
-			return res.redirect('/logout');
+			//console.log(err, results)
+			//return res.redirect('/logout');
 		});
 
 	},
 
 	// Internal methods
 
-	_deleteData: function( model ){
+	_deleteData: function( model, id ){
 
 		return function( next ){
 
