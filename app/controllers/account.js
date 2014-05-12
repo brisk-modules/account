@@ -146,15 +146,48 @@ var controller = Parent.extend({
 				// add date attributes
 				data.created = data.updated = (new Date()).getTime();
 
-				db.update(data, function(){
+				var actions = [
 
-					// verify data - update session:
-					passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
-						// on error display this
-						console.log(error);
-					});
+					// first check if there's an existing user with that email
+					function( next ){
+						db.read({ email: data.email },
+						function( user ) {
+							// then try to login
+							if( user ){
+								// show alert
+								if( req.flash ) req.flash("error", "This email is already registered");
+								res.redirect('/account/register');
+								return next({ error: "emailRegistered" });
+							}
+							// free to create account
+							next( null );
+						});
+					},
 
-				});
+					// create new user
+					function( next ){
+
+						db.create(data, function( result ){
+							// validate data?
+							next( null );
+						});
+
+					},
+
+					// verify data - update session
+					function( next ){
+
+						passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
+							// on error display this
+							console.log(error);
+						});
+
+					}
+
+				];
+
+				// execute
+				async.series( actions );
 
 			break;
 			default:
