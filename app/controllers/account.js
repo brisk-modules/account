@@ -62,6 +62,9 @@ var controller = Parent.extend({
 		// straight to the dashboard if there is already an email/pass
 		if(user && user.password ) return res.redirect('/');
 
+		// supporting flash middleware
+		this.alert = alerts( req, res );
+
 		switch( req.method ){
 			case "GET":
 
@@ -81,12 +84,16 @@ var controller = Parent.extend({
 
 				var db = req.site.models.user;
 				var passport = req.site.helpers.passport.self();
-				// update the existing user model
-				// validate response first... (use set() instead)
+				// (use set() instead)
 				var data = req.body;
 				data.id = user.id;
+				// validate response first...
+				var valid = this._validateData( data );
+				if( !valid ) return res.redirect('/account/complete');
 				// filter data
 				delete data.password_confirm;
+				// update the existing user model
+				//...
 				// update password
 				data.password = bcrypt.hashSync( data.password, 10 );
 				// add date attributes
@@ -125,6 +132,9 @@ var controller = Parent.extend({
 		// straight to the dashboard if there is already an email/pass
 		if(user && user.password ) return res.redirect('/');
 
+		// supporting flash middleware
+		this.alert = alerts( req, res );
+
 		switch( req.method ){
 			case "GET":
 
@@ -140,11 +150,16 @@ var controller = Parent.extend({
 
 				var db = req.site.models.user;
 				var passport = req.site.helpers.passport.self();
-				// update the existing user model
-				// validate response first... (use set() instead)
+				// (use set() instead)
 				var data = _.extend( (new db.schema()), req.body );
+				// validate response first...
+				var valid = this._validateData( data );
+				if( !valid ) return res.redirect('/account/register');
+
 				// filter data
 				delete data.password_confirm;
+				// update the existing user model
+				//...
 				// update password
 				data.password = bcrypt.hashSync( data.password, 10 );
 				// add date attributes
@@ -159,7 +174,7 @@ var controller = Parent.extend({
 							// then try to login
 							if( user ){
 								// show alert
-								if( req.flash ) req.flash("error", "This email is already registered");
+								this.alert("error", "This email is already registered");
 								res.redirect('/account/register');
 								return next({ error: "emailRegistered" });
 							}
@@ -248,6 +263,10 @@ var controller = Parent.extend({
 
 	},
 
+	// Helpers
+	// display notifications
+	alert: false,
+
 	// Internal methods
 
 	_deleteData: function( model, id ){
@@ -286,10 +305,27 @@ var controller = Parent.extend({
 			//( req.site.config.api.twitter )
 			return false;
 		}
+	},
+
+	_validateData: function( data ){
+		if( _.isEmpty(data.password) || data.password !== data.password_confirm ){
+			// show alert
+			this.alert("error", "The passwords didn't match");
+			return false;
+		}
+		return true;
 	}
 
 });
 
+// Helpers
 
+function alerts( req, res ){
+	// thisis the method used to alert messages during validation...
+	return function( type, message ){
+		// support flash middleware
+		if( req.flash ) req.flash(type, message);
+	}
+}
 
 module.exports = controller;
