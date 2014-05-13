@@ -187,6 +187,8 @@ var controller = Parent.extend({
 					function( next ){
 
 						db.create(data, function( result ){
+							// show alert
+							this.alert("success", "Your account was created successfully");
 							// validate data?
 							next( null );
 						});
