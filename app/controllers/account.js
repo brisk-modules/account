@@ -125,6 +125,7 @@ var controller = Parent.extend({
 	// create user account
 	register : function(req, res){
 
+		var self = this;
 		// this auth state is a bit peculiar  at this page
 		// we accept users that are logged in but have no password
 		// get user
@@ -174,7 +175,7 @@ var controller = Parent.extend({
 							// then try to login
 							if( user ){
 								// show alert
-								this.alert("error", "This email is already registered");
+								self.alert("error", "This email is already registered");
 								res.redirect('/account/register');
 								return next({ error: "emailRegistered" });
 							}
@@ -188,7 +189,7 @@ var controller = Parent.extend({
 
 						db.create(data, function( result ){
 							// show alert
-							this.alert("success", "Your account was created successfully");
+							self.alert("success", "Your account was created successfully");
 							// validate data?
 							next( null );
 						});
