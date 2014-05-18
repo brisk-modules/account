@@ -2,6 +2,14 @@
 
 Account management for Brisk
 
+
+## Dependencies
+
+* [Brisk](https://github.com/makesites/brisk)
+* [Passport](https://github.com/jaredhanson/passport)
+* [Handlebars](https://github.com/donpark/hbs)
+
+
 ## Install
 
 Using NPM
