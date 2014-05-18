@@ -278,6 +278,13 @@ var controller = Parent.extend({
 
 	},
 
+	validate: function(){
+
+		// post registations actions
+		this.postRegister();
+
+	},
+
 	// Helpers
 	// display notifications
 	alert: false,
@@ -306,6 +313,14 @@ var controller = Parent.extend({
 
 		};
 	},
+
+	// Events
+
+	postRegister: function(){
+		// override with your own custom method
+	},
+
+	// Private
 
 	// - list models related with users
 	_userRelatedModels: function(){
