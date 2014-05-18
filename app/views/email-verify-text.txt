@@ -1,6 +1,12 @@
+Thanks for signing up with {{site.name}}
+
 You are one step away from valifdating your new account.
 
 Just click the following link to get started:
-{{url}}
 
-Thanks again for signing up.
+{{site.url}}/account/verify/{{user.cid}}
+
+If you have further questions you can email us at: {{site.email}}.
+
+Thanks again,
+The {{site.name}} team

@@ -1,33 +1,22 @@
-{{#extend "styles"}}
-{{/extend}}
+<!doctype html>
+<html>
+<head>
 
-<div class="main">
-<div class="hero">
-	<div class="centerframe container">
-	<div class="centerframe-inner">
-		<h3>Register Account</h3>
-		<form class="app-login" action="/account/register" method="POST">
-		<div style="text-align: center; width: 240px; margin: 0 auto">
-			<input type="text" name="name" placeholder="Full Name" required>
-			<input type="email" name="email" placeholder="Email" required>
-			<input type="password" name="password" placeholder="Password" required>
-			<input type="password" name="password_confirm" placeholder="Confirm Password" required>
-			<input type="submit" class="btn button-blue" value="submit">
-		</div>
-		</form>
-		<hr>
-		<p><a href="/account/login" class="btn button-blue" title="Click to login...">Already have an account?</a></p>
-		<hr>
-		{{#if useTwitter}}
-		<p><a href="/auth/twitter" class="btn button-tw button-icon"><i aria-hidden="true" data-icon="#"></i> signup with twitter</a></p>
-		{{/if}}
-		{{#if useFacebook}}
-		<p><a href="/auth/facebook" class="btn button-fb button-icon"><i aria-hidden="true" data-icon="!"></i> signup with facebook</a></p>
-		{{/if}}
-	</div>
-	</div>
-</div>
-</div>
+</head>
+<body>
 
-{{#extend "scripts"}}
-{{/extend}}
+<h2>Thanks for signing up with {{site.name}}</h2>
+
+<p>You are one step away from valifdating your new account.</p>
+
+<p>Just click the following link to get started:</p>
+
+<p><a href="{{site.url}}/account/verify/{{user.cid}}">{{site.url}}/account/verify/{{user.cid}}</a></p>
+
+<p>If you have further questions you can email us at: {{site.email}}.</p>
+
+<p>Thanks again,<br />
+The {{site.name}} team</p>
+
+</body>
+</html>
