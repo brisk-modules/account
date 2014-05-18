@@ -27,6 +27,8 @@ var controller = Parent.extend({
 			if( info.isNew ){
 
 				if( typeof req.user == "undefined" ){
+					// include common id
+					user.cid = User.createCID();
 					// first create the user
 					User.create(user,
 					function( err, result ) {

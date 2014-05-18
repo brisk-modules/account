@@ -159,6 +159,8 @@ var controller = Parent.extend({
 
 				// filter data
 				delete data.password_confirm;
+				// include common id
+				data.cid = db.createCID();
 				// update the existing user model
 				//...
 				// update password
