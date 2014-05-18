@@ -27,6 +27,7 @@
 		"async": "0.8.0",
 		"bcrypt": "0.7.x",
 		"brisk": "0.x",
+		"nodemailer": "~0.6.5",
 		"passport": "0.x",
 		"passport-twitter": "0.x",
 		"passport-local": "0.x",

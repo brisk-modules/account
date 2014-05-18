@@ -1,8 +1,10 @@
 var _ = require('underscore'),
+	async = require("async"),
 	brisk = require("brisk"),
 	bcrypt = require("bcrypt"),
 	Parent = brisk.getBaseController("main"),
-	async = require("async");
+	Mailer = require("../../index").getHelper("mailer");
+
 
 var controller = Parent.extend({
 	name: "account",
@@ -18,6 +20,7 @@ var controller = Parent.extend({
 
 	// login to an existing account
 	login : function(req, res){
+
 		// if authenticated redirect to the homepage
 		if( this.isAuthenticated(req, res) ) return res.redirect('/');
 
@@ -192,6 +195,13 @@ var controller = Parent.extend({
 						db.create(data, function( result ){
 							// show alert
 							self.alert("success", "Your account was created successfully");
+							// send a verification email
+							var mailer = new Mailer( req.site );
+							mailer.register({
+								name: data.name,
+								email: data.email
+							});
+
 							// validate data?
 							next( null );
 						});
