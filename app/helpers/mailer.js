@@ -1,6 +1,7 @@
 var _ = require('underscore'),
 	fs = require("fs"),
 	brisk = require("brisk"),
+	hbs = require("hbs"),
 	nodemailer = require('nodemailer'),
 	Main = brisk.getClass("main");
 
@@ -10,9 +11,16 @@ var helper = Main.extend({
 		user: {}
 	},
 
+	data: {}, // convert this to a model?
+
 	init: function( site ){
 		// site is not optional in this version...
 		this.site = site;
+		// load messages (once?)
+		this.data.register = {
+			text: loadFile( this.site._findFile( "app/views/email-verify-text" ) +".txt" ),
+			html: loadFile( this.site._findFile( "app/views/email-verify-html" ) +".html" )
+		}
 	},
 
 	register: function( user ){
@@ -25,7 +33,6 @@ var helper = Main.extend({
 		user.name = user.name || this.options.user.name || "";
 		user.email = user.email || this.options.user.email || false;
 		// prerequisite
-		console.log( "user", user );
 		if( !user.email ) return; // all other fields are non-breaking?
 
 		// Create a Direct transport object
@@ -34,7 +41,7 @@ var helper = Main.extend({
 		var transport = nodemailer.createTransport("SES", {
 			AWSAccessKeyID: this.site.config.api.aws.key,
 			AWSSecretKey: this.site.config.api.aws.secret,
-			ServiceUrl: "https://email.us-east-1.amazonaws.com" // optional
+			ServiceUrl: "https://email.us-east-1.amazonaws.com" // make this variable?
 		});
 
 		console.log('SES Configured');
@@ -61,10 +68,10 @@ var helper = Main.extend({
 			subject: site.name +': Thanks for registering!', //
 
 			// plaintext body
-			text: fs.readFileSync( this.site._findFile( "app/views/email-verify-text" ) +".txt", "utf8"),
+			text: this.data.register.text( user ),
 
 			// HTML body
-			html: fs.readFileSync( this.site._findFile( "app/views/email-verify-html" ) +".html", "utf8"),
+			html: this.data.register.html( user ),
 
 			// An array of attachments
 			attachments:[]
@@ -92,6 +99,14 @@ var helper = Main.extend({
 
 
 });
+
+// Helpers
+
+function loadFile( file ){
+	var string = fs.readFileSync( file, "utf8");
+	var template = hbs.compile( string );
+	return template;
+}
 
 
 module.exports = helper;
