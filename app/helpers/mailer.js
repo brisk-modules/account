@@ -32,8 +32,9 @@ var helper = Main.extend({
 		// fallback to options
 		user.name = user.name || this.options.user.name || "";
 		user.email = user.email || this.options.user.email || false;
+		site.url = site.url || this.site.config.url || false;
 		// prerequisite
-		if( !user.email ) return; // all other fields are non-breaking?
+		if( !user.email || site.url) return; // all other fields are non-breaking?
 
 		// Create a Direct transport object
 		//var transport = nodemailer.createTransport("Direct", {debug: true});
@@ -68,10 +69,10 @@ var helper = Main.extend({
 			subject: site.name +': Thanks for registering!', //
 
 			// plaintext body
-			text: this.data.register.text( user ),
+			text: this.data.register.text({ user: user, site: site }),
 
 			// HTML body
-			html: this.data.register.html( user ),
+			html: this.data.register.html({ user: user, site: site }),
 
 			// An array of attachments
 			attachments:[]
