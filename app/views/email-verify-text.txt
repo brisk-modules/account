@@ -1,0 +1,6 @@
+You are one step away from valifdating your new account.
+
+Just click the following link to get started:
+{{url}}
+
+Thanks again for signing up.
