@@ -278,10 +278,10 @@ var controller = Parent.extend({
 
 	},
 
-	validate: function(){
+	verify: function(req, res){
 
 		// post registations actions
-		this.postRegister();
+		this.postRegister(req, res);
 
 	},
 
@@ -316,7 +316,7 @@ var controller = Parent.extend({
 
 	// Events
 
-	postRegister: function(){
+	postRegister: function(req, res){
 		// override with your own custom method
 	},
 
