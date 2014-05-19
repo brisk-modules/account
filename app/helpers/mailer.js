@@ -33,8 +33,8 @@ var helper = Main.extend({
 		user.name = user.name || this.options.user.name || "";
 		user.email = user.email || this.options.user.email || false;
 		site.url = site.url || this.site.config.url || false;
-		// prerequisite
-		if( !user.email || site.url) return; // all other fields are non-breaking?
+		// prerequisites
+		if( !user.email || !site.url) return; // all other fields are non-breaking?
 
 		// Create a Direct transport object
 		//var transport = nodemailer.createTransport("Direct", {debug: true});
@@ -45,7 +45,7 @@ var helper = Main.extend({
 			ServiceUrl: "https://email.us-east-1.amazonaws.com" // make this variable?
 		});
 
-		console.log('SES Configured');
+		//console.log('SES Configured');
 
 		// optional DKIM signing
 		/*
@@ -78,7 +78,7 @@ var helper = Main.extend({
 			attachments:[]
 		};
 
-		console.log('Sending Mail', message);
+		//console.log('Sending Mail', message);
 
 		transport.sendMail(message, function(error, response){
 			if(error){
@@ -86,7 +86,7 @@ var helper = Main.extend({
 				console.log(error.message);
 				return;
 			}else{
-				console.log(response);
+				//console.log(response);
 				console.log('Message sent successfully!');
 			}
 
