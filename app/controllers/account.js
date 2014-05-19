@@ -298,9 +298,39 @@ var controller = Parent.extend({
 	},
 
 	verify: function(req, res){
+		// we need an id to continue
+		if( typeof req.query["_key"] != "string" ) return res.redirect('/');
 
-		// post registations actions
-		this.postRegister(req, res);
+		var self = this;
+		var db = req.site.models.user;
+		var cid = req.query["_key"];
+
+		// supporting flash middleware
+		this.alert = alerts( req, res );
+
+		db.findOne({ cid: cid }, function( user ){
+			if( !user ) return res.redirect('/');
+			// if already active move on
+			if( user.active ) {
+				self.alert("info", "Account already active. Logging you in...");
+			} else {
+			// activate account (don't wait?)
+				db.update({
+					id: user.id,
+					active: 1
+				});
+				self.alert("success", "Account activated. You can now login...");
+			}
+			// update session ( better way to pass this info?)
+			req.user = req.user || {};
+			req.user.email = user.email;
+			req.user.password = user.password;
+			// post registation actions
+			self.postRegister(req, res);
+			// either way return to the login page
+			return res.redirect('/account/login');
+		});
+
 
 	},
 
