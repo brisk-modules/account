@@ -1,6 +1,6 @@
 Thanks for signing up with {{site.name}}
 
-You are one step away from valifdating your new account.
+You are one step away from validating your new account.
 
 Just click the following link to get started:
 
