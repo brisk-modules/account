@@ -58,6 +58,7 @@ var controller = Parent.extend({
 	// prompt the user to complete the authentication
 	complete : function(req, res){
 
+		var self = this;
 		// this auth state is a bit peculiar  at this page
 		// we accept users that are logged in but have no password
 		// get user
@@ -102,18 +103,33 @@ var controller = Parent.extend({
 				// add date attributes
 				data.created = data.updated = (new Date()).getTime();
 
-				db.update(data, function(){
+				// update the session
+				req.user.email = data.email;
+				req.user.password = data.password;
 
-					// update the user
-					req.user.email = data.email;
-					req.user.password = data.password;
+				// update the database
+				db.update(data, function( err ){
+					// check error?
 
+					// notification
+					self.alert("success", "Account complete. Check your email for the activation link.");
+
+					var user = req.user;
+					// send a verification email
+					var mailer = new Mailer( req.site );
+					mailer.register({
+						name: user.name,
+						email: user.email,
+						cid: user.cid
+					});
+					/*
 					// verify data - update session:
 					passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
 						// on error display this
 						console.log(error);
 					});
-
+					*/
+					res.redirect('/');
 				});
 
 			break;
@@ -194,12 +210,13 @@ var controller = Parent.extend({
 
 						db.create(data, function( result ){
 							// show alert
-							self.alert("success", "Your account was created successfully");
+							self.alert("success", "Account created. Check your email for the activation link.");
 							// send a verification email
 							var mailer = new Mailer( req.site );
 							mailer.register({
 								name: data.name,
-								email: data.email
+								email: data.email,
+								cid: data.cid
 							});
 
 							// validate data?
@@ -210,12 +227,14 @@ var controller = Parent.extend({
 
 					// verify data - update session
 					function( next ){
-
+						// back to the index page
+						res.redirect('/');
+/*
 						passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
 							// on error display this
 							console.log(error);
 						});
-
+*/
 					}
 
 				];
