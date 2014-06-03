@@ -319,7 +319,7 @@ var controller = Parent.extend({
 					id: user.id,
 					active: 1
 				});
-				self.alert("success", "Account activated. You can now login...");
+				self.alert("success", "Account activated. Logging you in...");
 			}
 			// update session ( better way to pass this info?)
 			req.user = req.user || {};
