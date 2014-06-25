@@ -129,8 +129,8 @@ var controller = Parent.extend({
 						console.log(error);
 					});
 					*/
-					// redirect back to the homepage
-					res.redirect('/');
+					// redirect back to the login page
+					res.redirect('/account/login');
 				});
 
 			break;
