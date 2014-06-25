@@ -108,7 +108,7 @@ var controller = Parent.extend({
 				req.user.password = data.password;
 
 				// update the database
-				db.update(data, function( err ){
+				db.update(data, function( err, result ){
 					// check error?
 
 					// notification
@@ -129,6 +129,7 @@ var controller = Parent.extend({
 						console.log(error);
 					});
 					*/
+					// redirect back to the homepage
 					res.redirect('/');
 				});
 
@@ -192,7 +193,7 @@ var controller = Parent.extend({
 					// first check if there's an existing user with that email
 					function( next ){
 						db.findOne({ email: data.email },
-						function( user ) {
+						function( err, user ) {
 							// then try to login
 							if( user ){
 								// show alert
@@ -208,7 +209,7 @@ var controller = Parent.extend({
 					// create new user
 					function( next ){
 
-						db.create(data, function( result ){
+						db.create(data, function( err, result ){
 							// show alert
 							self.alert("success", "Account created. Check your email for the activation link.");
 							// send a verification email
@@ -308,7 +309,7 @@ var controller = Parent.extend({
 		// supporting flash middleware
 		this.alert = alerts( req, res );
 
-		db.findOne({ cid: cid }, function( user ){
+		db.findOne({ cid: cid }, function( err, user ){
 			if( !user ) return res.redirect('/');
 			// if already active move on
 			if( user.active ) {
