@@ -350,14 +350,14 @@ var controller = Parent.extend({
 
 		return function( next ){
 
-			model.read({ uid : id }, function( data ){
+			model.read({ uid : id }, function( err, data ){
 				if( !data ) next(null);
 				// convert to an array if returning a single object
 				data = (data instanceof Array) ? data : [data];
 				//
 				var count = 0;
 				for(var i in data){
-					model.archive({ id : data[i].id }, { $set: { updated : "timestamp", active : 0 } }, function(){
+					model.delete({ id : data[i].id }, function(err, result){
 						count++;
 						//
 						if(count == data.length) next(null);
