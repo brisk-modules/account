@@ -14,7 +14,7 @@ var controller = Parent.extend({
 
 		var service = req.query.service;
 		var passport = req.site.helpers.passport.self();
-		var User = req.site.models.user;
+		var db = req.site.models.user;
 
 		passport.authenticate(service, function(err, user, info) {
 			if (err) { return console.log(err) }
@@ -28,9 +28,9 @@ var controller = Parent.extend({
 
 				if( typeof req.user == "undefined" ){
 					// include common id
-					user.cid = User.createCID();
+					user.cid = db.createCID();
 					// first create the user
-					User.create(user,
+					db.create(user,
 					function( err, result ) {
 						if(err) {throw err;}
 						// then try to login
@@ -49,7 +49,7 @@ var controller = Parent.extend({
 					}
 					data.accounts[service] = user.accounts[service];
 					// update db
-					User.update(data,
+					db.update(data,
 						function( err, result ) {
 							if(err) {throw err;}
 							return res.redirect('/');
