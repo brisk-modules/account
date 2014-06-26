@@ -9,6 +9,10 @@ var _ = require('underscore'),
 var controller = Parent.extend({
 	name: "account",
 
+	options: {
+		assets: [] // list of models related with users
+	},
+
 	index : function(req, res){
 
 		if( !this.isAuthenticated(req, res) ) return res.redirect('/');
@@ -270,11 +274,12 @@ var controller = Parent.extend({
 
 		// databases
 		var users = req.site.models.user;
-		var models = this._userRelatedModels();
+		var assets = this.options.assets;
 		var actions = [];
 
+		// delete user related assets
 		for( var i in models ){
-			var model = req.site.models[ models[i] ] || false;
+			var model = req.site.models[ assets[i] ] || false;
 			if( !model ) continue;
 			// delete related data on this model
 			actions.push( this._deleteData( model, id ) );
@@ -376,12 +381,6 @@ var controller = Parent.extend({
 	},
 
 	// Private
-
-	// - list models related with users
-	_userRelatedModels: function(){
-		// overwrite this with your custom logic
-		return [];
-	},
 
 	_findAPI: function( name, site){
 		try {
