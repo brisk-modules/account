@@ -11,7 +11,7 @@ var controller = Parent.extend({
 
 	index : function(req, res){
 
-		this.ensureAuthenticated(req, res);
+		if( !this.isAuthenticated(req, res) ) return res.redirect('/');
 		//
 		res.view = "account";
 		this.render( req, res );
