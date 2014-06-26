@@ -184,7 +184,7 @@ var controller = Parent.extend({
 				// update the existing user model
 				//...
 				// update password
-				data.password = bcrypt.hashSync( data.password, 10 );
+				data.password = this._encryptPassword( data.password );
 				// add date attributes
 				data.created = data.updated = (new Date()).getTime();
 
@@ -340,6 +340,11 @@ var controller = Parent.extend({
 	alert: false,
 
 	// Internal methods
+
+	_encryptPassword: function(){
+		// basic password encryption using brypt
+		return bcrypt.hashSync( data.password, 10 );
+	},
 
 	_deleteData: function( model, id ){
 
