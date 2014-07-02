@@ -278,7 +278,7 @@ var controller = Parent.extend({
 
 		// prerequisites
 		// - if no user. exit now
-		if( !user ) return res.redirect('/account');
+		if( !user ) return res.redirect('/');
 		// - verify the user id...
 		if( typeof id !== "string" || user.id !== id ) return res.redirect('/account');
 
@@ -288,7 +288,7 @@ var controller = Parent.extend({
 		var actions = [];
 
 		// delete user related assets
-		for( var i in models ){
+		for( var i in assets ){
 			var model = req.site.models[ assets[i] ] || false;
 			if( !model ) continue;
 			// delete related data on this model
@@ -297,9 +297,11 @@ var controller = Parent.extend({
 
 		actions.push(function(next){
 			// delete account
-			users.archive({ id : id }, { $set: { updated : "timestamp" } }, function(){
+			users.delete({ id : id }, function(){
 				// error control?
-				 res.redirect('/logout');
+				// trigger state method...
+				self._onDelete(req, res);
+				res.redirect('/logout');
 				return next(null);
 			});
 		});
