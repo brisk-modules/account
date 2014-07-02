@@ -10,7 +10,8 @@ var controller = Parent.extend({
 	name: "account",
 
 	options: {
-		assets: [] // list of models related with users
+		assets: [], // list of models related with users
+		private: ["onCreate", "onLogin", "onDelete", "postRegister"] // list of inaccessible methods
 	},
 
 	index : function(req, res){
@@ -332,7 +333,7 @@ var controller = Parent.extend({
 			req.user.email = user.email;
 			req.user.password = user.password;
 			// post registation actions
-			self.postRegister(req, res);
+			self._postRegister(req, res);
 			// either way return to the login page
 			return res.redirect('/account/login');
 		});
@@ -376,11 +377,45 @@ var controller = Parent.extend({
 
 	// Events
 
+	// - when the account is created (unverified)
+	onCreate: function(req, res){
+
+	},
+
+	// - when a user has successfullt logged in
+	onLogin: function(req, res){
+
+	},
+
+	// - when an account has been deleted
+	onDelete: function(req, res){
+
+	},
+
+	// - when an account has been verified
 	postRegister: function(req, res){
 		// override with your own custom method
 	},
 
 	// Private
+
+	_onCreate: function(req, res){
+		this.onCreate(req, res);
+	},
+
+	// - when a user has successfullt logged in
+	_onLogin: function(req, res){
+		this.onLogin(req, res);
+	},
+
+	// - when an account has been deleted
+	_onDelete: function(req, res){
+		this.onDelete(req, res);
+	},
+
+	_postRegister: function(req, res){
+		this.postRegister(req, res);
+	},
 
 	_findAPI: function( name, site){
 		try {
