@@ -347,9 +347,9 @@ var controller = Parent.extend({
 
 	// Internal methods
 
-	_encryptPassword: function(){
+	_encryptPassword: function( password ){
 		// basic password encryption using brypt
-		return bcrypt.hashSync( data.password, 10 );
+		return bcrypt.hashSync( password, 10 );
 	},
 
 	_deleteData: function( model, id ){
