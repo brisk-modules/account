@@ -184,8 +184,6 @@ var controller = Parent.extend({
 
 				// filter data
 				delete data.password_confirm;
-				// include common id
-				data.cid = db.createCID();
 				// update the existing user model
 				//...
 				// update password
@@ -203,6 +201,15 @@ var controller = Parent.extend({
 							if( user ){
 								// show alert
 								self.alert("error", "This email is already registered");
+								if( !user.active ){
+									// re-send verification email
+									var mailer = new Mailer( req.site );
+									mailer.register({
+										name: user.name,
+										email: user.email,
+										cid: user.cid
+									});
+								}
 								res.redirect('/account/register');
 								return next({ error: "emailRegistered" });
 							}
@@ -213,6 +220,8 @@ var controller = Parent.extend({
 
 					// create new user
 					function( next ){
+						// include common id
+						data.cid = db.createCID();
 
 						db.create(data, function( err, result ){
 							// show alert
