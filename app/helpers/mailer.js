@@ -25,7 +25,7 @@ var helper = Main.extend({
 
 	register: function( user ){
 
-		var site = brisk.loadConfig('site');
+		var site = this.site.loadConfig('site');
 
 		// check user details
 		user = user || {};
