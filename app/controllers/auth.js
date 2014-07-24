@@ -16,19 +16,18 @@ var controller = Parent.extend({
 		var passport = req.site.helpers.passport.self();
 		var db = req.site.models.user;
 
-		passport.authenticate(service, function(err, user, info) {
+		passport.authenticate(service, function(err, user, options) {
 			if (err) { return console.log(err) }
 			// if failed, redirect...
 			if (!user) { return res.redirect('/account/login') }
 			// fallback
-			info = info || {};
-
+			options = options || {};
 			// if an additional account - add to the existing service
-			if( info.isNew ){
+			if( options.action ){
 
-				if( typeof req.user == "undefined" ){
+				if( options.action == "create" ){
 					// include common id
-					user.cid = db.createCID();
+					user.cid = db.createCID(); // make this part of .schema() ?
 					// first create the user
 					db.create(user,
 					function( err, result ) {
@@ -41,30 +40,31 @@ var controller = Parent.extend({
 					});
 
 				} else {
-					console.log("updating to existing");
 					// update just the account information
 					var data = {
-						id: req.user.id,
-						accounts: req.user.accounts
+						id: user.id,
+						accounts: user.accounts
 					}
 					data.accounts[service] = user.accounts[service];
 					// update db
 					db.update(data,
 						function( err, result ) {
 							if(err) {throw err;}
-							return res.redirect('/');
+							// then try to login
+							req.logIn(user, function(err) {
+								if (err) { return next(err); }
+								return res.redirect('/');
+							});
 					});
 				}
 
 			} else {
 				// if not logged in try to login with the db account
 				if( typeof req.user == "undefined" ){
-
 					req.logIn(user, function(err) {
 						if (err) { return next(err); }
 						return res.redirect('/');
 					});
-
 				} else {
 					// already logged in and no new information...
 					return res.redirect('/');
