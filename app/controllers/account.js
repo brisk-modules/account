@@ -82,6 +82,8 @@ var controller = Parent.extend({
 				// set template vars
 				if( !user.email ){
 					res.locals.noEmail = true;
+				} else {
+					res.locals.email = user.email;
 				}
 				//res.template = "main";
 				res.view = "account-complete";
@@ -225,7 +227,7 @@ var controller = Parent.extend({
 
 						db.create(data, function( err, result ){
 							// show alert
-							self.alert("success", "Account created. Check your email for the activation link.");
+							self.alert("success", "Account created. Check your email for the activation link");
 							// send a verification email
 							var mailer = new Mailer( req.site );
 							mailer.register({
@@ -330,14 +332,14 @@ var controller = Parent.extend({
 			if( !user ) return res.redirect('/');
 			// if already active move on
 			if( user.active ) {
-				self.alert("info", "Account already active. Logging you in...");
+				self.alert("info", "Account already active. Please login");
 			} else {
 			// activate account (don't wait?)
 				db.update({
 					id: user.id,
 					active: 1
 				});
-				self.alert("success", "Account activated. Logging you in...");
+				self.alert("success", "Account activated. You can now login");
 			}
 			// update session ( better way to pass this info?)
 			req.user = req.user || {};
