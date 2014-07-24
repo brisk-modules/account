@@ -31,7 +31,8 @@ var helper = Main.extend({
 		passport.use(new FacebookStrategy({
 			clientID: api.facebook.key,
 			clientSecret: api.facebook.secret,
-			callbackURL: site.config.url +"/auth/callback/service/facebook"
+			callbackURL: site.config.url +"/auth/callback/service/facebook",
+			profileFields : ["id", "username", "displayName", "emails"] // also available: "name", "first_name", "last_name", "link", "gender", "locale", "age_range", "photos"
 		}, _.bind(this.facebook, this) ));
 		}
 
