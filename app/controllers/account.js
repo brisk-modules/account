@@ -109,6 +109,8 @@ var controller = Parent.extend({
 				data.password = bcrypt.hashSync( data.password, 10 );
 				// add date attributes
 				data.created = data.updated = (new Date()).getTime(); //is this still needed?
+				// include common id
+				if( !data.cid ) data.cid = db.createCID(); //is this still needed?
 
 				// update the session (use req.logIn instead?)
 				//req.user.email = data.email;
@@ -137,7 +139,7 @@ var controller = Parent.extend({
 					function( next ){
 						// send a verification email
 
-						var user = req.user;
+						var user = data;
 						var mailer = new Mailer( req.site );
 
 						mailer.register({
