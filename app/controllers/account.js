@@ -68,6 +68,8 @@ var controller = Parent.extend({
 		// we accept users that are logged in but have no password
 		// get user
 		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		// back to login if no user in session
+		if( !user ) return res.redirect('/account/login');
 		// straight to the dashboard if there is already an email/pass
 		if(user && user.password ) return res.redirect('/');
 
@@ -77,8 +79,6 @@ var controller = Parent.extend({
 		switch( req.method ){
 			case "GET":
 
-				// back to login if no user in session
-				if( !user ) res.redirect('/account/login');
 				// set template vars
 				if( !user.email ){
 					res.locals.noEmail = true;
@@ -108,37 +108,62 @@ var controller = Parent.extend({
 				// update password
 				data.password = bcrypt.hashSync( data.password, 10 );
 				// add date attributes
-				data.created = data.updated = (new Date()).getTime();
+				data.created = data.updated = (new Date()).getTime(); //is this still needed?
 
-				// update the session
-				req.user.email = data.email;
-				req.user.password = data.password;
+				// update the session (use req.logIn instead?)
+				//req.user.email = data.email;
+				//req.user.password = data.password;
+				var actions = [
 
-				// update the database
-				db.update(data, function( err, result ){
-					// check error?
+					// check if the email is already used
+					function( next ){
+						db.findOne({ email : data.email }, function( err, user ){
+							// error control?
+							if( user ) return next({ message: "Email has already been used" })
+							next( null );
+						});
+					},
 
-					// notification
-					self.alert("success", "Account complete. Check your email for the activation link.");
+					// update the database
+					function( next ){
+						// update the database
+						db.update(data, function( err, result ){
+							// error control?
+							next( null );
+						});
+					},
 
-					var user = req.user;
-					// send a verification email
-					var mailer = new Mailer( req.site );
-					mailer.register({
-						name: user.name,
-						email: user.email,
-						cid: user.cid
-					});
-					/*
-					// verify data - update session:
-					passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
-						// on error display this
-						console.log(error);
-					});
-					*/
-					// redirect back to the login page
-					res.redirect('/account/login');
+					//
+					function( next ){
+						// send a verification email
+
+						var user = req.user;
+						var mailer = new Mailer( req.site );
+
+						mailer.register({
+							name: user.name,
+							email: user.email,
+							cid: user.cid
+						});
+						// wait for email delivery?
+						next( null );
+					},
+				];
+				// execute
+				async.series( actions, function(err, data){
+					if( err ){
+						// notification
+						self.alert("error", err.message);
+						return res.redirect('/account/complete');
+					} else {
+						// success - logout and head back to index
+						// notification
+						self.alert("success", "Account complete. Check your email for the activation link.");
+						req.logOut();
+						res.redirect('/');
+					}
 				});
+
 
 			break;
 			default:
