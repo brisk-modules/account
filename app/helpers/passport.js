@@ -61,12 +61,75 @@ var helper = Main.extend({
 		});
 	},
 
+
 	twitter: function(token, tokenSecret, profile, done) {
+
+		profile.token = {key : token, secret : tokenSecret };
+		this.service("twitter", profile, done);
 
 	},
 
+	// also compatible with: github
 	facebook: function(accessToken, refreshToken, profile, done) {
 
+		profile.token = {access : accessToken, refresh : refreshToken };
+		this.service("facebook", profile, done);
+
+	},
+
+	// authenticate through a third party service
+	service: function(type, profile, callback) {
+
+		var self = this;
+		var model = this.model;
+		var options = {};
+
+		// find email
+		if( !profile.email && profile.emails instanceof Array ){
+			profile.email = profile.emails[0].value;
+		}
+
+		var key = 'accounts.'+ type +'.id';
+		var query = {};
+		query[key] = profile.id;
+
+		var query = model.findOne(query, function (err, userByAccount) {
+
+			if( userByAccount ) {
+				// this third-party account has already been used
+				// update existing credentials
+				var data = self.extendUser(type, userByAccount, profile);
+				// continue...
+				options.action = "update";
+				return callback(null, data, options);
+
+			} else {
+				// user async module for this?
+				if( profile.email ){
+					// check if the email has been used
+					model.findOne({ 'email': profile.email }, function (err, userByEmail) {
+						if(userByEmail) {
+							var data = self.extendUser(type, userByEmail, profile);
+							options.action = "update";
+						} else {
+							// this is a new user...
+							var data = self.newUser(type, model, profile);
+							options.action = "create";
+						}
+						// redirect user
+						return callback(null, data, options);
+					});
+				} else {
+					// no email provided in profile
+					// assuming this is a new user...
+					var data = self.newUser(type, model, profile);
+					options.action = "create";
+					return callback(null, data, options);
+				}
+
+			}
+
+		});
 	},
 
 	createStrategy: function( type, Strategy ){
@@ -95,6 +158,44 @@ var helper = Main.extend({
 		// init strategy
 		this.passport.use( new Strategy( options, _.bind(this[type], this) ));
 
+	},
+
+	// User methods
+
+	extendUser: function ( service, user, profile){
+		// fallbacks
+		user.accounts = user.accounts || {};
+		user.accounts[service] = user.accounts[service] || {};
+
+		user.accounts[service] = _.extend(
+		user.accounts[service], {
+			id : profile.id,
+			user : profile.username,
+			token : profile.token
+		});
+
+		return user;
+	},
+
+	newUser: function ( service, model, profile ){
+		var user = _.extend( (new model.schema()), {
+			name : profile.displayName || profile.name || ""
+		});
+		// fallbacks
+		user.accounts = user.accounts || {};
+		user.accounts[service] = user.accounts[service] || {};
+
+		user.accounts[service] = _.extend(
+		user.accounts[service], {
+			id : profile.id,
+			user : profile.username,
+			token : profile.token
+		});
+
+		if( profile.email ){
+			user.email = profile.email;
+		}
+		return user;
 	},
 
 	// Password methods
