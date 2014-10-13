@@ -17,8 +17,13 @@ var controller = Parent.extend({
 	index : function(req, res){
 
 		if( !this.isAuthenticated(req, res) ) return res.redirect('/');
+		// variables
+		var config = req.site.config;
 		//
 		res.view = "account";
+		// support layouts
+		if( config.paths.layouts ) res.options = { layout: 'account' }; // customize with a variable?
+		//
 		this.render( req, res );
 
 	},
