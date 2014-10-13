@@ -43,7 +43,22 @@ var helper = Main.extend({
 	},
 
 	local: function(email, password, done) {
+		var self = this;
 		// asynchronous verification, for effect...
+		process.nextTick(function () {
+
+			var query = self.model.find({ 'email': email }, function (err, user) {
+
+				if (err) { return done(err); }
+				if (!user) { return done(null, false, { error: "no_user", message: 'Unknown user ' + email }); }
+				if (!user.active) { return done(null, false, { error: "not_active", message: 'Account is not active' }); }
+				if (!user.password) { return done(null, false, { error: "no_password", message: 'No password set for ' + email }); }
+				// compare password
+				self.comparePassword(password, user, done);
+
+			});
+
+		});
 	},
 
 	twitter: function(token, tokenSecret, profile, done) {
@@ -80,6 +95,15 @@ var helper = Main.extend({
 		// init strategy
 		this.passport.use( new Strategy( options, _.bind(this[type], this) ));
 
+	},
+
+	// Password methods
+
+	comparePassword: function(password, user, callback){
+		bcrypt.compare(password, user.password, function(err, res) {
+			if( res == true ) return callback(null, user);
+			return callback(null, false, { message: "The password you entered is incorrect" });
+		});
 	},
 
 	// Internal
