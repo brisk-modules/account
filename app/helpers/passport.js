@@ -13,6 +13,7 @@ var helper = Main.extend({
 		var api = site.config.api || {};
 
 		this.model = site.models.user;
+		this.site = site;
 
 		// Use the LocalStrategy within Passport.
 		passport.use(new LocalStrategy({
@@ -47,9 +48,17 @@ var helper = Main.extend({
 
 		this.passport = passport;
 
+		// setup other strategies
+		this._setup();
+
 	},
 	self: function() {
 		return this.passport;
+	},
+
+	// extend with your own strategy setup
+	setup: function(){
+
 	},
 
 	local: function(email, password, done) {
@@ -62,6 +71,13 @@ var helper = Main.extend({
 
 	facebook: function(accessToken, refreshToken, profile, done) {
 
+	},
+
+	// internal
+	_setup: function(){
+
+		// user defined:
+		this.setup();
 	}
 
 });
