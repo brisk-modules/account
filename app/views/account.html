@@ -1,25 +1,23 @@
-
 <div class="main account">
-<div class="content">
-<h3></h3>
-
-<div class="user-details">
-	{{#if user.name}}<p><strong>{{user.name}}</strong></p>{{/if}}
-	<p>{{user.email}}</p>
-	<p>Member since: {{user.created}}</p>
-
-</div>
-	{{#if user.accounts.twitter}}
-		<a class="button-gray">Connected Twitter</a>
-	{{else}}
-		<a href="/auth/twitter" class="btn button-blue">Connect Twitter</a>
-	{{/if}}
-	{{#if user.accounts.facebook}}
-		<a class="button-gray">Connected Facebook</a>
-	{{else}}
-		<a href="/auth/facebook" class="btn button-blue">Connect Facebook</a>
-	{{/if}}
-
-	<p><a href="/account/delete/{{user.id}}" class="delete-link button-red">Delete Account</a></p>
-</div>
+	<div class="content">
+		<h3></h3>
+		<div class="user-details"> {{#if user.name}}
+			<p><strong>{{user.name}}</strong></p>
+			{{/if}}
+			<p>{{user.email}}</p>
+			<p>Member since: {{user.created}}</p>
+		</div>
+		{{#if user.accounts.twitter}} 
+			<a class="btn btn-gray">Connected Twitter</a> 
+		{{else}} 
+			<a href="/auth/twitter" class="btn btn-blue">Connect Twitter</a> 
+		{{/if}}
+		{{#if user.accounts.facebook}} 
+			<a class="btn btn-gray">Connected Facebook</a> 
+		{{else}} 
+			<a href="/auth/facebook" class="btn btn-blue">Connect Facebook</a> 
+		{{/if}}
+		
+		<p><a href="/account/delete/{{user.id}}" class="delete-link btn btn-red">Delete Account</a></p>
+	</div>
 </div>

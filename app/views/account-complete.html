@@ -1,21 +1,18 @@
-
 <div class="main">
-<div class="hero">
-	<div class="centerframe container">
-	<div class="centerframe-inner">
-		<h3>Complete your account:</h3>
-		<form class="app-login" action="/account/complete" method="POST">
-			{{#if noEmail}}
-			<input type="email" name="email" placeholder="Email" required>
-			{{else}}
-			<input type="email" name="email" placeholder="Email" value="{{email}}" disabled>
-			{{/if}}
-			<input type="password" id="password" name="password" placeholder="Password" required>
-			<input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm Password" required>
-			<input type="submit" class="btn button-blue" value="Submit">
-		</form>
-		<p><a href="/account/login" class="btn button-blue" title="Click to login...">Already completed account?</a></p>
+	<div class="hero">
+		<div class="login">
+			<h3>Complete your account:</h3>
+			<form class="app-login" action="/account/complete" method="POST">
+				{{#if noEmail}}
+				<input type="email" name="email" placeholder="Email" required>
+				{{else}}
+				<input type="email" name="email" placeholder="Email" value="{{email}}" disabled>
+				{{/if}}
+				<input type="password" id="password" name="password" placeholder="Password" required>
+				<input type="password" id="password_confirm" name="password_confirm" placeholder="Confirm Password" required>
+				<input type="submit" class="btn btn-blue" value="Submit">
+			</form>
+			<p><a href="/account/login" title="Click to login...">Already completed account?</a></p>
+		</div>
 	</div>
-	</div>
-</div>
 </div>
