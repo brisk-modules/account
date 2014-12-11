@@ -37,6 +37,12 @@ var controller = Parent.extend({
 		switch( req.method ){
 			case "GET":
 
+				// check if we want to return to a specific page
+				if( req.query.redirect ) {
+					// save to session
+					req.session._account_login_redirect = req.query.redirect;
+				}
+
 				res.view = "account-login";
 				// local vars
 				res.locals.useFacebook = this._findAPI("facebook", req.site);
@@ -47,10 +53,11 @@ var controller = Parent.extend({
 			break;
 			case "POST":
 
+				var redirect = req.session._account_login_redirect || "/";
 				var passport = req.site.helpers.passport.self();
-				// process submitted credentials
 
-				passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login', failureFlash: true})(req, res, function(error){
+				// process submitted credentials
+				passport.authenticate('local', { successRedirect: redirect, failureRedirect: '/account/login', failureFlash: true})(req, res, function(error){
 					// on error display this
 					console.log("error authenicating: ", error);
 				});
@@ -197,6 +204,12 @@ var controller = Parent.extend({
 
 		switch( req.method ){
 			case "GET":
+
+				// check if we want to return to a specific page
+				if( req.query.redirect ) {
+					// save to session
+					req.session._account_login_redirect = req.query.redirect;
+				}
 
 				res.view = "account-register";
 				// local vars
