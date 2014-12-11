@@ -219,7 +219,7 @@ var helper = Main.extend({
 		}
 
 		if( api.facebook ){
-			this.createStrategy("facebook", TwitterStrategy);
+			this.createStrategy("facebook", FacebookStrategy);
 		}
 
 		// user defined:
