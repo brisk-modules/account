@@ -37,11 +37,8 @@ var controller = Parent.extend({
 		switch( req.method ){
 			case "GET":
 
-				// check if we want to return to a specific page
-				if( req.query.redirect ) {
-					// save to session
-					req.session._account_login_redirect = req.query.redirect;
-				}
+				// save redirect page to session
+				req.session._account_login_redirect = ( req.query.redirect ) ? req.query.redirect : "/";
 
 				res.view = "account-login";
 				// local vars
