@@ -59,6 +59,12 @@ var controller = Parent.extend({
 					console.log("error authenicating: ", error);
 				});
 
+				// trigger onLogin event (with latency, replace with throttling?)
+				var self = this;
+				setTimeout(function(){
+					self._onLogin(req, res);
+				}, 2000);
+
 			break;
 			default:
 				// else redirect to the homepage
@@ -458,7 +464,7 @@ var controller = Parent.extend({
 		this.onCreate(req, res);
 	},
 
-	// - when a user has successfullt logged in
+	// - when a user has successfully logged in
 	_onLogin: function(req, res){
 		this.onLogin(req, res);
 	},
