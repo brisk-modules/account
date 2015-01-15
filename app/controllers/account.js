@@ -173,18 +173,17 @@ var controller = Parent.extend({
 						self.alert("error", err.message);
 						return res.redirect('/account/complete');
 					} else {
-						// success - logout and head back to index
-						// notification
+						// success - logout and head back to login with a notification
 						self.alert("success", "Account complete. Check your email for the activation link.");
 						req.logOut();
-						res.redirect('/');
+						res.redirect('/account/login');
 					}
 				});
 
 
 			break;
 			default:
-				// else redirect to the homepage
+				// no other methods allowed - redirect to the homepage
 				res.redirect('/');
 			break;
 		}
@@ -292,8 +291,8 @@ var controller = Parent.extend({
 
 					// verify data - update session
 					function( next ){
-						// back to the index page
-						res.redirect('/');
+						// back to the login page
+						res.redirect('/account/login');
 /*
 						passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
 							// on error display this
