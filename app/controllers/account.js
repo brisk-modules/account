@@ -94,16 +94,7 @@ var controller = Parent.extend({
 		switch( req.method ){
 			case "GET":
 
-				// set template vars
-				if( !user.email ){
-					res.locals.noEmail = true;
-				} else {
-					res.locals.email = user.email;
-				}
-				//res.template = "main";
-				res.view = "account-complete";
-				// render
-				this.render( req, res );
+				this._renderComplete( req, res );
 
 			break;
 			case "POST":
@@ -115,7 +106,7 @@ var controller = Parent.extend({
 				data.id = user.id;
 				// validate response first...
 				var valid = this._validateData( data );
-				if( !valid ) return res.redirect('/account/complete');
+				if( !valid ) return this._renderComplete( req, res );
 				// filter data
 				delete data.password_confirm;
 				// update the existing user model
@@ -171,7 +162,7 @@ var controller = Parent.extend({
 					if( err ){
 						// notification
 						self.alert("error", err.message);
-						return res.redirect('/account/complete');
+						return self._renderComplete( req, res );
 					} else {
 						// success - logout and head back to login with a notification
 						self.alert("success", "Account complete. Check your email for the activation link.");
@@ -207,18 +198,7 @@ var controller = Parent.extend({
 		switch( req.method ){
 			case "GET":
 
-				// check if we want to return to a specific page
-				if( req.query.redirect ) {
-					// save to session
-					req.session._account_login_redirect = req.query.redirect;
-				}
-
-				res.view = "account-register";
-				// local vars
-				res.locals.useFacebook = this._findAPI("facebook", req.site);
-				res.locals.useTwitter = this._findAPI("twitter", req.site);
-				// render
-				this.render( req, res );
+				this._renderRegister( req, res );
 
 			break;
 			case "POST":
@@ -229,7 +209,7 @@ var controller = Parent.extend({
 				var data = _.extend( (new db.schema()), req.body );
 				// validate response first...
 				var valid = this._validateData( data );
-				if( !valid ) return res.redirect('/account/register');
+				if( !valid ) return this._renderRegister( req, res );
 
 				// filter data
 				delete data.password_confirm;
@@ -248,8 +228,6 @@ var controller = Parent.extend({
 						function( err, user ) {
 							// then try to login
 							if( user ){
-								// show alert
-								self.alert("error", "This email is already registered");
 								if( !user.active ){
 									// re-send verification email
 									var mailer = new Mailer( req.site );
@@ -259,7 +237,9 @@ var controller = Parent.extend({
 										cid: user.cid
 									});
 								}
-								res.redirect('/account/register');
+								// show alert
+								self.alert("error", "This email is already registered");
+								// continue...
 								return next({ error: "emailRegistered" });
 							}
 							// free to create account
@@ -273,8 +253,6 @@ var controller = Parent.extend({
 						data.cid = db.createCID();
 
 						db.create(data, function( err, result ){
-							// show alert
-							self.alert("success", "Account created. Check your email for the activation link");
 							// send a verification email
 							var mailer = new Mailer( req.site );
 							mailer.register({
@@ -282,29 +260,34 @@ var controller = Parent.extend({
 								email: data.email,
 								cid: data.cid
 							});
-
+							// show alert
+							self.alert("success", "Account created. Check your email for the activation link");
 							// validate data?
 							next( null );
 						});
 
 					},
-
+/*
 					// verify data - update session
 					function( next ){
 						// back to the login page
-						res.redirect('/account/login');
-/*
 						passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
 							// on error display this
 							console.log(error);
 						});
-*/
 					}
-
+*/
 				];
 
 				// execute
-				async.series( actions );
+				async.series( actions, function( err, data ){
+					if( err ){
+						self._renderRegister( req, res );
+					} else {
+						// done - back to the login page
+						res.redirect('/account/login');
+					}
+				});
 
 			break;
 			default:
@@ -350,16 +333,14 @@ var controller = Parent.extend({
 				// error control?
 				// trigger state method...
 				self._onDelete(req, res);
-				res.redirect('/logout');
 				return next(null);
 			});
 		});
 
 		// execute actions in sequence
-		async.series( actions,
-		function(err, results){
-			//console.log(err, results)
-			//return res.redirect('/logout');
+		async.series( actions, function(err, results){
+			// error control?
+			res.redirect('/logout');
 		});
 
 	},
@@ -435,6 +416,45 @@ var controller = Parent.extend({
 		};
 	},
 
+	_renderComplete: function( req, res ){
+		// get user
+		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		// set template vars
+		if( !user.email ){
+			res.locals.noEmail = true;
+		} else {
+			res.locals.email = user.email;
+		}
+		// alerts
+		res.locals.alerts = alerts( req, res )(); // output
+		//res.template = "main";
+		res.view = "account-complete";
+		// render
+		this.render( req, res );
+	},
+
+	_renderRegister: function( req, res ){
+		// check if we want to return to a specific page
+		if( req.query.redirect ) {
+			// save to session
+			req.session._account_login_redirect = req.query.redirect;
+		}
+		// set template vars
+		res.locals.name = req.body.name || "";
+		res.locals.email = req.body.email || "";
+		// alerts
+		res.locals.alerts = alerts( req, res )(); // output
+
+		res.view = "account-register";
+		// local vars
+		res.locals.useFacebook = this._findAPI("facebook", req.site);
+		res.locals.useTwitter = this._findAPI("twitter", req.site);
+
+		// render
+		this.render( req, res );
+	},
+
+
 	// Events
 
 	// - when the account is created (unverified)
@@ -502,8 +522,25 @@ var controller = Parent.extend({
 function alerts( req, res ){
 	// thisis the method used to alert messages during validation...
 	return function( type, message ){
-		// support flash middleware
-		if( req.flash ) req.flash(type, message);
+		if( !type ){
+			// output
+			if( req.flash ){
+				res.locals.alerts = req.flash();
+			} else{
+				// already set...
+			}
+			return res.locals.alerts;
+		} else {
+			// support flash middleware
+			if( req.flash ){
+				req.flash(type, message);
+			} else{
+				// bare object
+				res.locals.alerts = res.locals.alerts || {};
+				res.locals.alerts[type] = res.locals.alerts[type] || [];
+				res.locals.alerts[type].push(message);
+			}
+		}
 	}
 }
 
