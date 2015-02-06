@@ -57,6 +57,8 @@ var controller = Parent.extend({
 				passport.authenticate('local', { successRedirect: redirect, failureRedirect: '/account/login', failureFlash: true})(req, res, function(error){
 					// on error display this
 					console.log("error authenicating: ", error);
+					req.flash("error", "There was a database error. Please try again");
+					res.redirect("/account/login");
 				});
 
 				// trigger onLogin event (with latency, replace with throttling?)
