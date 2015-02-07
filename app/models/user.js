@@ -5,13 +5,7 @@ var model = Model.extend({
 
 	options: {
 		archive: true, // by default data is archives and not deleted
-		backend: "" // customize with your db table
-	},
-
-	init: function( site ){
-		// db
-		this.db = site.modules.db || null; // error control?
-		this.backend = this.options.backend;
+		backend: false // customize with your db table
 	},
 
 	schema : function(){
