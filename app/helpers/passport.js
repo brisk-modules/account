@@ -52,7 +52,8 @@ var helper = Main.extend({
 				if (err) { return done(err); }
 				if (!user) { return done(null, false, { error: "no_user", message: 'Unknown user ' + email }); }
 				if (!user.active) { return done(null, false, { error: "not_active", message: 'Account is not active' }); }
-				if (!user.password) { return done(null, false, { error: "no_password", message: 'No password set for ' + email }); }
+				if (!user.password) return done('no_password', false, { error: "no_password", message: 'No password set for ' + email });
+
 				// compare password
 				self.comparePassword(password, user, done);
 

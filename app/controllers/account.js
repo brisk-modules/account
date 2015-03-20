@@ -55,7 +55,12 @@ var controller = Parent.extend({
 
 				// process submitted credentials
 				passport.authenticate('local', { successRedirect: redirect, failureRedirect: '/account/login', failureFlash: true})(req, res, function(error){
-					// on error display this
+					if( error == 'no_password'){
+						// set flag to reset account
+						req.session._account_reset = req.body.email; // validate?
+						return res.redirect("/account/reset");
+					}
+					// display this on other errors (database?)
 					console.log("error authenicating: ", error);
 					req.flash("error", "There was a database error. Please try again");
 					res.redirect("/account/login");
@@ -344,6 +349,109 @@ var controller = Parent.extend({
 			// error control?
 			res.redirect('/logout');
 		});
+
+	},
+
+	// reset password for an existing account
+	reset : function(req, res){
+		// prerequisites
+		// - if no session, exit
+		if( !req.session ) return res.redirect('/');
+		// - this endpoint is accessible only if given permission from the backend
+		// ( we identify that through a session param )
+		if( !this.isAuthenticated(req, res) && !req.session._account_reset ) return res.redirect('/');
+
+		// branch out based on request method
+		switch( req.method ){
+			case "GET":
+
+				res.view = "account-reset";
+
+				// render view
+				this.render(req, res);
+
+			break;
+			case "POST":
+				var self = this,
+					auth = this.isAuthenticated(req, res),
+					data, user;
+
+				var actions = [
+					function( done ){
+						// get user
+						if( auth ){
+							user = req.user;
+							return done();
+						} else if( req.session._account_reset ){
+							var db = req.site.models.user,
+								email = req.session._account_reset;
+							db.findOne({ email: email }, function( err, result ){
+								if( err ) return done('db_error');
+								if( !result ) return done('user_not_found');
+								//
+								user = result;
+								// continue...
+								done();
+							});
+						} else {
+							return done('not_allowed'); // how did we get here?
+						}
+					},
+					// filter submitted data
+					function( done ){
+						if( !req.body ) return done('no_data');
+						// make sure confirmation password is the same
+						if( !req.body.password || !req.body.password_confirm || (req.body.password != req.body.password_confirm) ) return done('password_mismatch');
+						//
+						var password = bcrypt.hashSync( req.body.password, 10 );
+						// data to be updated...
+						data = {
+							id: user.id,
+							password: password
+						}
+						// continue...
+						done();
+					},
+					// save user data
+					function( done ){
+						var db = req.site.models.user;
+
+						db.update( data, function( err, result){
+							// error control?
+							if( err ) return done('db_error');
+							// continue...
+							done();
+						});
+					}
+
+				];
+
+
+				// supporting flash middleware
+				this.alert = alerts( req, res );
+
+				async.series( actions, function( err, results ){
+					if( err ){
+						self.alert("error", err);
+					} else {
+						self.alert("success", "Your password was reset"); // account_reset_success
+					}
+					// reset flag (always?)
+					delete req.session._account_reset;
+					// redirect based on the login state
+					if( auth ){
+						res.redirect('/account');
+					} else {
+						res.redirect('/account/login');
+					}
+				});
+
+			break;
+			default:
+				// nothing else supported, exit
+				return res.redirect('/');
+			break;
+		}
 
 	},
 
