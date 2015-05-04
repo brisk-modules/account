@@ -57,13 +57,14 @@ var helper = Main.extend({
 		*/
 
 		// Message object
+		// FIX: clean names from special characters
 		var message = {
 
 			// sender info
-			from: site.name +' <'+ site.email +'>',
+			from: site.name.replace(/[!:@#$%^&*]/g, "") +' <'+ site.email +'>',
 
 			// Comma separated list of recipients
-			to: '"'+ user.name +'" <'+ user.email +'>',
+			to: '"'+ user.name.replace(/[!:@#$%^&*]/g, "") +'" <'+ user.email +'>',
 
 			// Subject of the message
 			subject: site.name +': Thanks for registering!', //
