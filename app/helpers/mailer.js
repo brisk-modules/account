@@ -29,10 +29,11 @@ var helper = Main.extend({
 
 		// check user details
 		user = user || {};
-		// fallback to options
-		user.name = user.name || this.options.user.name || "";
+		// main fields - fallback to options
+		user.name = cleanName( user.name || this.options.user.name || "" );
 		user.email = user.email || this.options.user.email || false;
 		site.url = site.url || this.site.config.url || false;
+		site.name = cleanName( site.name || this.site.config.name || "" );
 		// prerequisites
 		if( !user.email || !site.url) return; // all other fields are non-breaking?
 
@@ -61,10 +62,10 @@ var helper = Main.extend({
 		var message = {
 
 			// sender info
-			from: site.name.replace(/[!:@#$%^&*]/g, "") +' <'+ site.email +'>',
+			from: site.name +' <'+ site.email +'>',
 
 			// Comma separated list of recipients
-			to: '"'+ user.name.replace(/[!:@#$%^&*]/g, "") +'" <'+ user.email +'>',
+			to: '"'+ user.name +'" <'+ user.email +'>',
 
 			// Subject of the message
 			subject: site.name +': Thanks for registering!', //
@@ -110,5 +111,12 @@ function loadFile( file ){
 	return template;
 }
 
+function cleanName( name ){
+	// only accept strings (use toString() in some cases?)
+	name = ( typeof name != "string" ) name = "";
+	// remove special characters
+	name = name.replace(/[!:@#$%^&*]/g, "");
+	return name;
+}
 
 module.exports = helper;
