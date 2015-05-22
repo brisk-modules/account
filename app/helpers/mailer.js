@@ -113,7 +113,7 @@ function loadFile( file ){
 
 function cleanName( name ){
 	// only accept strings (use toString() in some cases?)
-	name = ( typeof name != "string" ) name = "";
+	if( typeof name != "string" ) name = "";
 	// remove special characters
 	name = name.replace(/[!:@#$%^&*]/g, "");
 	return name;
