@@ -24,12 +24,12 @@ var helper = Main.extend({
 		}
 	},
 
-	register: function( user ){
-
-		var site = this.site.loadConfig('site');
-
-		// check user details
+	register: function( user, cb ){
+		// fallbacks
 		user = user || {};
+		cb = cb || function(){};
+		// variables
+		var site = this.site.loadConfig('site');
 		// main fields - fallback to options
 		user.name = cleanName( user.name || this.options.user.name || "" );
 		user.email = user.email || this.options.user.email || false;
@@ -87,13 +87,15 @@ var helper = Main.extend({
 			if(error){
 				console.log('Error occured');
 				console.log(error.message);
-				return;
+				return cb( error );
 			}else{
 				//console.log(response);
-				console.log('Message sent successfully!');
+				//console.log('Message sent successfully!');
+				return cb(null, true); // success
 			}
 
 		});
+
 
 	},
 
