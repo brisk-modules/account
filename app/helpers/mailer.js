@@ -3,6 +3,7 @@ var _ = require('underscore'),
 	brisk = require("brisk"),
 	hbs = require("hbs"),
 	nodemailer = require('nodemailer'),
+	ses = require('nodemailer-ses-transport'),
 	Main = brisk.getClass("main");
 
 var helper = Main.extend({
@@ -40,11 +41,11 @@ var helper = Main.extend({
 		// Create a Direct transport object
 		//var transport = nodemailer.createTransport("Direct", {debug: true});
 		// Create an Amazon SES transport object
-		var transport = nodemailer.createTransport("SES", {
-			AWSAccessKeyID: this.site.config.api.aws.key,
-			AWSSecretKey: this.site.config.api.aws.secret,
-			ServiceUrl: "https://email.us-east-1.amazonaws.com" // make this variable?
-		});
+		var transport = nodemailer.createTransport(ses({
+			accessKeyId: this.site.config.api.aws.key,
+			secretAccessKey: this.site.config.api.aws.secret
+			//region: "us-east-1" // option?
+		}));
 
 		//console.log('SES Configured');
 
@@ -77,7 +78,7 @@ var helper = Main.extend({
 			html: this.data.register.html({ user: user, site: site }),
 
 			// An array of attachments
-			attachments:[]
+			//attachments:[]
 		};
 
 		//console.log('Sending Mail', message);
@@ -113,7 +114,7 @@ function loadFile( file ){
 
 function cleanName( name ){
 	// only accept strings (use toString() in some cases?)
-	if( typeof name != "string" ) name = "";
+	if( typeof name != "string" ) name = "User";
 	// remove special characters
 	name = name.replace(/[!:@#$%^&*]/g, "");
 	return name;
