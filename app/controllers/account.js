@@ -52,12 +52,13 @@ var controller = Parent.extend({
 
 				var redirect = req.session._account_login_redirect || "/";
 				var passport = req.site.helpers.passport.self();
+				var data = req.body || {};
 
 				// process submitted credentials
 				passport.authenticate('local', { successRedirect: redirect, failureRedirect: '/account/login', failureFlash: true})(req, res, function(error){
 					if( error == 'no_password'){
 						// set flag to reset account
-						req.session._account_reset = req.body.email; // validate?
+						req.session._account_reset = data.email; // validate?
 						return res.redirect("/account/reset");
 					}
 					// display this on other errors (database?)
@@ -109,7 +110,7 @@ var controller = Parent.extend({
 				var db = req.site.models.user;
 				var passport = req.site.helpers.passport.self();
 				// (use set() instead)
-				var data = req.body;
+				var data = req.body || {};
 				data.id = user.id;
 				// validate response first...
 				var valid = this._validateData( data );
@@ -549,9 +550,11 @@ var controller = Parent.extend({
 			// save to session
 			req.session._account_login_redirect = req.query.redirect;
 		}
+		// variables
+		var data = req.body || {};
 		// set template vars
-		res.locals.name = req.body.name || "";
-		res.locals.email = req.body.email || "";
+		res.locals.name = data.name || "";
+		res.locals.email = data.email || "";
 		// alerts
 		res.locals.alerts = alerts( req, res )(); // output
 
