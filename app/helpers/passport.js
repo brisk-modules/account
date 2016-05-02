@@ -152,7 +152,8 @@ var helper = Main.extend({
 				clientID: api.key,
 				clientSecret: api.secret
 			};
-			if(type == "facebook") options.profileFields = ["id", "username", "displayName", "emails"]; // also available: "name", "first_name", "last_name", "link", "gender", "locale", "age_range", "photos"
+			if(type == "facebook") options.profileFields = ["id", "displayName", "emails"]; // also available: "name", "first_name", "last_name", "link", "gender", "locale", "age_range", "photos"
+			// "username" field is deprecated for versions v2.0 and higher
 		}
 		options.callbackURL =  config.url +"/auth/callback/service/"+ type;
 
@@ -171,7 +172,7 @@ var helper = Main.extend({
 		user.accounts[service] = _.extend(
 		user.accounts[service], {
 			id : profile.id,
-			user : profile.username,
+			user : profile.username || null,
 			token : profile.token
 		});
 
@@ -189,7 +190,7 @@ var helper = Main.extend({
 		user.accounts[service] = _.extend(
 		user.accounts[service], {
 			id : profile.id,
-			user : profile.username,
+			user : profile.username || null,
 			token : profile.token
 		});
 
