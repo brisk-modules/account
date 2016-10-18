@@ -159,7 +159,7 @@ var controller = Parent.extend({
 						mailer.register({
 							name: user.name,
 							email: user.email,
-							cid: user.cid
+							cid: user.cid || user.id
 						});
 						// wait for email delivery?
 						next( null );
@@ -242,7 +242,7 @@ var controller = Parent.extend({
 									mailer.register({
 										name: user.name,
 										email: user.email,
-										cid: user.cid
+										cid: user.cid || user.id
 									});
 								}
 								// show alert
@@ -266,7 +266,7 @@ var controller = Parent.extend({
 							mailer.register({
 								name: data.name,
 								email: data.email,
-								cid: data.cid
+								cid: data.cid || data.id
 							});
 							// show alert
 							self.alert("success", "Account created. Check your email for the activation link");
@@ -462,12 +462,40 @@ var controller = Parent.extend({
 
 		var self = this;
 		var db = req.site.models.user;
-		var cid = req.query["_key"];
+		var uid = req.query["_key"];
+		var user = null;
 
 		// supporting flash middleware
 		this.alert = alerts( req, res );
 
-		db.findOne({ cid: cid }, function( err, user ){
+		// user can either be a cid or an id
+		var actions = [
+			// most likely it's a common id
+			function( done ){
+				// db lookup
+				db.findOne({ cid: uid }, function( err, result ){
+					// error control?
+					// data clean up?
+					if( result ) user = result;
+					// continue...
+					done();
+				});
+			},
+			// legacy fallback
+			function( done ){
+				if( user ) return done();
+				// db lookup
+				db.findOne({ id: uid }, function( err, result ){
+					// error control?
+					// data clean up?
+					if( result ) user = result;
+					// continue...
+					done();
+				});
+			}
+		];
+
+		async.series( actions, function( err, results ){
 			if( !user ) return res.redirect('/');
 			// if already active move on
 			if( user.active ) {
@@ -489,7 +517,6 @@ var controller = Parent.extend({
 			// either way return to the login page
 			return res.redirect('/account/login');
 		});
-
 
 	},
 
