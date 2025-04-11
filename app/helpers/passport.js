@@ -13,21 +13,23 @@ var helper = Main.extend({
 		this.model = site.models.user;
 		this.site = site;
 
+		var auth = new passport.Authenticator();
+
 		// Use the LocalStrategy within Passport.
-		passport.use(new LocalStrategy({
+		auth.use(new LocalStrategy({
 				usernameField: 'email'
 			}, _.bind(this.local, this) ));
 
 		// Helpers
-		passport.serializeUser(function(user, done) {
+		auth.serializeUser(function(user, done) {
 			done(null, user);
 		});
 
-		passport.deserializeUser(function(user, done) {
+		auth.deserializeUser(function(user, done) {
 			done(null, user);
 		});
 
-		this.passport = passport;
+		this.passport = auth;
 
 		// setup other strategies
 		this._setup();
