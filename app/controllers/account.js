@@ -69,9 +69,9 @@ var controller = Parent.extend({
 
 				// trigger onLogin event (with latency, replace with throttling?)
 				var self = this;
-				setTimeout(function(){
+				process.nextTick(function(){
 					self._onLogin(req, res);
-				}, 2000);
+				});
 
 			break;
 			default:
