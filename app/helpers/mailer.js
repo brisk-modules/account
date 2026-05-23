@@ -30,9 +30,10 @@ var helper = Main.extend({
 		cb = cb || function(){};
 		// variables
 		var site = this.site.loadConfig('site');
+		var config = require("../../index").config(this.site);
 		// main fields - fallback to options
-		user.name = cleanName( user.name || this.options.user.name || "" );
-		user.email = user.email || this.options.user.email || false;
+		user.name = cleanName( user.name || config.user.name || "" );
+		user.email = user.email || config.user.email || false;
 		site.url = site.url || this.site.config.url || false;
 		site.name = cleanName( site.name || this.site.config.name || "" );
 		// prerequisites

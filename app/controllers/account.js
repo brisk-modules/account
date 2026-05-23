@@ -3,7 +3,8 @@ var _ = require('underscore'),
 	brisk = require("brisk"),
 	bcrypt = require("bcrypt"),
 	Parent = brisk.getBaseController("main"),
-	Mailer = require("../../index").getHelper("mailer");
+	Main = require("../../index"),
+	Mailer = Main.getHelper("mailer");
 
 
 var controller = Parent.extend({
@@ -14,40 +15,40 @@ var controller = Parent.extend({
 		private: ["onCreate", "onLogin", "onDelete", "postRegister"] // list of inaccessible methods
 	},
 
-	index : function(req, res){
+	index: function (req, res) {
 
-		if( !this.isAuthenticated(req, res) ) return res.redirect('/');
+		if (!this.isAuthenticated(req, res)) return res.redirect('/');
 		// variables
 		var config = req.site.config;
 		//
 		res.view = "account";
 		// support layouts
-		if( config.paths.layouts ) res.options = { layout: 'account' }; // customize with a variable?
+		if (config.paths.layouts) res.options = { layout: 'account' }; // customize with a variable?
 		//
-		this.render( req, res );
+		this.render(req, res);
 
 	},
 
 	// login to an existing account
-	login : function(req, res){
+	login: function (req, res) {
 
 		// if authenticated redirect to the homepage
-		if( this.isAuthenticated(req, res) ) return res.redirect('/');
+		if (this.isAuthenticated(req, res)) return res.redirect('/');
 
-		switch( req.method ){
+		switch (req.method) {
 			case "GET":
 
 				// save redirect page to session
-				req.session._account_login_redirect = ( req.query.redirect ) ? req.query.redirect : "/";
+				req.session._account_login_redirect = (req.query.redirect) ? req.query.redirect : "/";
 
 				res.view = "account-login";
 				// local vars
 				res.locals.useFacebook = this._findAPI("facebook", req.site);
 				res.locals.useTwitter = this._findAPI("twitter", req.site);
 				//
-				this.render( req, res );
+				this.render(req, res);
 
-			break;
+				break;
 			case "POST":
 
 				var redirect = req.session._account_login_redirect || "/";
@@ -55,8 +56,8 @@ var controller = Parent.extend({
 				var data = req.body || {};
 
 				// process submitted credentials
-				passport.authenticate('local', { successRedirect: redirect, failureRedirect: '/account/login', failureFlash: true})(req, res, function(error){
-					if( error == 'no_password'){
+				passport.authenticate('local', { successRedirect: redirect, failureRedirect: '/account/login', failureFlash: true })(req, res, function (error) {
+					if (error == 'no_password') {
 						// set flag to reset account
 						req.session._account_reset = data.email; // validate?
 						return res.redirect("/account/reset");
@@ -69,42 +70,44 @@ var controller = Parent.extend({
 
 				// trigger onLogin event (with latency, replace with throttling?)
 				var self = this;
-				process.nextTick(function(){
+				process.nextTick(function () {
 					self._onLogin(req, res);
 				});
 
-			break;
+				break;
 			default:
 				// else redirect to the homepage
 				return res.redirect('/');
-			break;
+				break;
 		}
 
 	},
 
 
 	// prompt the user to complete the authentication
-	complete : function(req, res){
+	complete: function (req, res) {
 
 		var self = this;
 		// this auth state is a bit peculiar  at this page
 		// we accept users that are logged in but have no password
 		// get user
-		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		var user = (typeof req.user != "undefined") ? req.user : false;
 		// back to login if no user in session
-		if( !user ) return res.redirect('/account/login');
+		if (!user) return res.redirect('/account/login');
 		// straight to the dashboard if there is already an email/pass
-		if(user && user.password ) return res.redirect('/');
+		if (user && user.password) return res.redirect('/');
+
+		var config = Main.config(req.site);
 
 		// supporting flash middleware
-		this.alert = alerts( req, res );
+		this.alert = alerts(req, res);
 
-		switch( req.method ){
+		switch (req.method) {
 			case "GET":
 
-				this._renderComplete( req, res );
+				this._renderComplete(req, res);
 
-			break;
+				break;
 			case "POST":
 
 				var db = req.site.models.user;
@@ -113,18 +116,18 @@ var controller = Parent.extend({
 				var data = req.body || {};
 				data.id = user.id;
 				// validate response first...
-				var valid = this._validateData( data );
-				if( !valid ) return this._renderComplete( req, res );
+				var valid = this._validateData(data);
+				if (!valid) return this._renderComplete(req, res);
 				// filter data
 				delete data.password_confirm;
 				// update the existing user model
 				//...
 				// update password
-				data.password = bcrypt.hashSync( data.password, 10 );
+				data.password = bcrypt.hashSync(data.password, 10);
 				// add date attributes
-				data.created = data.updated = (new Date()).getTime(); //is this still needed?
+				data.created = data.updated = (new Date()).getTime();
 				// include common id
-				if( !data.cid ) data.cid = db.createCID(); //is this still needed?
+				if (!data.cid) data.cid = db.createCID();
 
 				// update the session (use req.logIn instead?)
 				//req.user.email = data.email;
@@ -132,195 +135,207 @@ var controller = Parent.extend({
 				var actions = [
 
 					// check if the email is already used
-					function( next ){
-						db.findOne({ email : data.email }, function( err, user ){
+					function (next) {
+						db.findOne({ email: data.email }, function (err, user) {
 							// error control?
-							if( user ) return next({ message: "Email has already been used" })
-							next( null );
+							if (user) return next({ message: "Email has already been used" })
+							next(null);
 						});
 					},
 
 					// update the database
-					function( next ){
+					function (next) {
 						// update the database
-						db.update(data, function( err, result ){
+						db.update(data, function (err, result) {
 							// error control?
-							next( null );
+							next(null);
 						});
 					},
 
 					//
-					function( next ){
+					function (next) {
 						// send a verification email
 
-						var user = data;
-						var mailer = new Mailer( req.site );
+						if (config.mailer) {
+							var user = data;
+							var mailer = new Mailer(req.site);
 
-						mailer.register({
-							name: user.name,
-							email: user.email,
-							cid: user.cid || user.id
-						});
+							mailer.register({
+								name: user.name,
+								email: user.email,
+								cid: user.cid || user.id
+							});
+						}
 						// wait for email delivery?
-						next( null );
+						next(null);
 					},
 				];
 				// execute
-				async.series( actions, function(err, data){
-					if( err ){
+				async.series(actions, function (err, data) {
+					if (err) {
 						// notification
 						self.alert("error", err.message);
-						return self._renderComplete( req, res );
+						return self._renderComplete(req, res);
 					} else {
+						var msg = "Account complete. ";
+						msg += (config.mailer) ? "Check your email for the activation link." : "You can now login.";
 						// success - logout and head back to login with a notification
-						self.alert("success", "Account complete. Check your email for the activation link.");
+						self.alert("success", msg);
 						req.logOut();
 						res.redirect('/account/login');
 					}
 				});
 
 
-			break;
+				break;
 			default:
 				// no other methods allowed - redirect to the homepage
 				res.redirect('/');
-			break;
+				break;
 		}
 
 	},
 
 	// create user account
-	register : function(req, res){
+	register: function (req, res) {
 
 		var self = this;
 		// this auth state is a bit peculiar  at this page
 		// we accept users that are logged in but have no password
 		// get user
-		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		var user = (typeof req.user != "undefined") ? req.user : false;
 		// straight to the dashboard if there is already an email/pass
-		if(user && user.password ) return res.redirect('/');
+		if (user && user.password) return res.redirect('/');
+
+		var config = Main.config(req.site);
 
 		// supporting flash middleware
-		this.alert = alerts( req, res );
+		this.alert = alerts(req, res);
 
-		switch( req.method ){
+		switch (req.method) {
 			case "GET":
 
-				this._renderRegister( req, res );
+				this._renderRegister(req, res);
 
-			break;
+				break;
 			case "POST":
 
 				var db = req.site.models.user;
 				var passport = req.site.helpers.passport.self();
 				// (use set() instead)
-				var data = _.extend( (new db.schema()), req.body );
+				var data = _.extend((new db.schema()), req.body);
 				// validate response first...
-				var valid = this._validateData( data );
-				if( !valid ) return this._renderRegister( req, res );
+				var valid = this._validateData(data);
+				if (!valid) return this._renderRegister(req, res);
 
 				// filter data
 				delete data.password_confirm;
 				// update the existing user model
 				//...
 				// update password
-				data.password = this._encryptPassword( data.password );
+				data.password = this._encryptPassword(data.password);
 				// add date attributes
 				data.created = data.updated = (new Date()).getTime();
 
 				var actions = [
 
 					// first check if there's an existing user with that email
-					function( next ){
+					function (next) {
 						db.findOne({ email: data.email },
-						function( err, user ) {
-							// then try to login
-							if( user ){
-								if( !user.active ){
-									// re-send verification email
-									var mailer = new Mailer( req.site );
-									mailer.register({
-										name: user.name,
-										email: user.email,
-										cid: user.cid || user.id
-									});
+							function (err, user) {
+								// then try to login
+								if (user) {
+									if (!user.active) {
+										if (config.mailer) {
+											// re-send verification email
+											var mailer = new Mailer(req.site);
+											mailer.register({
+												name: user.name,
+												email: user.email,
+												cid: user.cid || user.id
+											});
+										}
+									}
+									// show alert
+									self.alert("error", "This email is already registered");
+									// continue...
+									return next({ error: "emailRegistered" });
 								}
-								// show alert
-								self.alert("error", "This email is already registered");
-								// continue...
-								return next({ error: "emailRegistered" });
-							}
-							// free to create account
-							next( null );
-						});
+								// free to create account
+								next(null);
+							});
 					},
 
 					// create new user
-					function( next ){
+					function (next) {
 						// include common id
 						data.cid = db.createCID();
 
-						db.create(data, function( err, result ){
-							// send a verification email
-							var mailer = new Mailer( req.site );
-							mailer.register({
-								name: data.name,
-								email: data.email,
-								cid: data.cid || data.id
-							});
+						db.create(data, function (err, result) {
+							var msg = "Account created. ";
+							msg += (config.mailer) ? "Check your email for the activation link." : "You can now login.";
+							if (config.mailer) {
+								// send a verification email
+								var mailer = new Mailer(req.site);
+								mailer.register({
+									name: data.name,
+									email: data.email,
+									cid: data.cid || data.id
+								});
+							}
 							// show alert
-							self.alert("success", "Account created. Check your email for the activation link");
+							self.alert("success", msg);
 							// validate data?
-							next( null );
+							next(null);
 						});
 
 					},
-/*
-					// verify data - update session
-					function( next ){
-						// back to the login page
-						passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
-							// on error display this
-							console.log(error);
-						});
-					}
-*/
+					/*
+										// verify data - update session
+										function( next ){
+											// back to the login page
+											passport.authenticate('local', { successRedirect: '/', failureRedirect: '/account/login' })(req, res, function(error){
+												// on error display this
+												console.log(error);
+											});
+										}
+					*/
 				];
 
 				// execute
-				async.series( actions, function( err, data ){
-					if( err ){
-						self._renderRegister( req, res );
+				async.series(actions, function (err, data) {
+					if (err) {
+						self._renderRegister(req, res);
 					} else {
 						// done - back to the login page
 						res.redirect('/account/login');
 					}
 				});
 
-			break;
+				break;
 			default:
 				// else redirect to the homepage
 				res.redirect('/');
-			break;
+				break;
 		}
 
 	},
 
 	// delete user account
-	"delete" : function(req, res){
+	"delete": function (req, res) {
 
 		var self = this;
 		//
 		this.ensureAuthenticated(req, res);
 		// variables
-		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		var user = (typeof req.user != "undefined") ? req.user : false;
 		var id = req.query["_key"];
 
 		// prerequisites
 		// - if no user. exit now
-		if( !user ) return res.redirect('/');
+		if (!user) return res.redirect('/');
 		// - verify the user id...
-		if( typeof id !== "string" || user.id !== id ) return res.redirect('/account');
+		if (typeof id !== "string" || user.id !== id) return res.redirect('/account');
 
 		// databases
 		var users = req.site.models.user;
@@ -328,16 +343,16 @@ var controller = Parent.extend({
 		var actions = [];
 
 		// delete user related assets
-		for( var i in assets ){
-			var model = req.site.models[ assets[i] ] || false;
-			if( !model ) continue;
+		for (var i in assets) {
+			var model = req.site.models[assets[i]] || false;
+			if (!model) continue;
 			// delete related data on this model
-			actions.push( this._deleteData( model, id ) );
+			actions.push(this._deleteData(model, id));
 		}
 
-		actions.push(function(next){
+		actions.push(function (next) {
 			// delete account
-			users.delete({ id : id }, function(){
+			users.delete({ id: id }, function () {
 				// error control?
 				// trigger state method...
 				self._onDelete(req, res);
@@ -346,7 +361,7 @@ var controller = Parent.extend({
 		});
 
 		// execute actions in sequence
-		async.series( actions, function(err, results){
+		async.series(actions, function (err, results) {
 			// error control?
 			res.redirect('/logout');
 		});
@@ -354,16 +369,16 @@ var controller = Parent.extend({
 	},
 
 	// reset password for an existing account
-	reset : function(req, res){
+	reset: function (req, res) {
 		// prerequisites
 		// - if no session, exit
-		if( !req.session ) return res.redirect('/');
+		if (!req.session) return res.redirect('/');
 		// - this endpoint is accessible only if given permission from the backend
 		// ( we identify that through a session param )
-		if( !this.isAuthenticated(req, res) && !req.session._account_reset ) return res.redirect('/');
+		if (!this.isAuthenticated(req, res) && !req.session._account_reset) return res.redirect('/');
 
 		// branch out based on request method
-		switch( req.method ){
+		switch (req.method) {
 			case "GET":
 
 				res.view = "account-reset";
@@ -371,24 +386,24 @@ var controller = Parent.extend({
 				// render view
 				this.render(req, res);
 
-			break;
+				break;
 			case "POST":
 				var self = this,
 					auth = this.isAuthenticated(req, res),
 					data, user;
 
 				var actions = [
-					function( done ){
+					function (done) {
 						// get user
-						if( auth ){
+						if (auth) {
 							user = req.user;
 							return done();
-						} else if( req.session._account_reset ){
+						} else if (req.session._account_reset) {
 							var db = req.site.models.user,
 								email = req.session._account_reset;
-							db.findOne({ email: email }, function( err, result ){
-								if( err ) return done('db_error');
-								if( !result ) return done('user_not_found');
+							db.findOne({ email: email }, function (err, result) {
+								if (err) return done('db_error');
+								if (!result) return done('user_not_found');
 								//
 								user = result;
 								// continue...
@@ -399,12 +414,12 @@ var controller = Parent.extend({
 						}
 					},
 					// filter submitted data
-					function( done ){
-						if( !req.body ) return done('no_data');
+					function (done) {
+						if (!req.body) return done('no_data');
 						// make sure confirmation password is the same
-						if( !req.body.password || !req.body.password_confirm || (req.body.password != req.body.password_confirm) ) return done('password_mismatch');
+						if (!req.body.password || !req.body.password_confirm || (req.body.password != req.body.password_confirm)) return done('password_mismatch');
 						//
-						var password = bcrypt.hashSync( req.body.password, 10 );
+						var password = bcrypt.hashSync(req.body.password, 10);
 						// data to be updated...
 						data = {
 							id: user.id,
@@ -414,12 +429,12 @@ var controller = Parent.extend({
 						done();
 					},
 					// save user data
-					function( done ){
+					function (done) {
 						var db = req.site.models.user;
 
-						db.update( data, function( err, result){
+						db.update(data, function (err, result) {
 							// error control?
-							if( err ) return done('db_error');
+							if (err) return done('db_error');
 							// continue...
 							done();
 						});
@@ -429,10 +444,10 @@ var controller = Parent.extend({
 
 
 				// supporting flash middleware
-				this.alert = alerts( req, res );
+				this.alert = alerts(req, res);
 
-				async.series( actions, function( err, results ){
-					if( err ){
+				async.series(actions, function (err, results) {
+					if (err) {
 						self.alert("error", err);
 					} else {
 						self.alert("success", "Your password was reset"); // account_reset_success
@@ -440,25 +455,25 @@ var controller = Parent.extend({
 					// reset flag (always?)
 					delete req.session._account_reset;
 					// redirect based on the login state
-					if( auth ){
+					if (auth) {
 						res.redirect('/account');
 					} else {
 						res.redirect('/account/login');
 					}
 				});
 
-			break;
+				break;
 			default:
 				// nothing else supported, exit
 				return res.redirect('/');
-			break;
+				break;
 		}
 
 	},
 
-	verify: function(req, res){
+	verify: function (req, res) {
 		// we need an id to continue
-		if( typeof req.query["_key"] != "string" ) return res.redirect('/');
+		if (typeof req.query["_key"] != "string") return res.redirect('/');
 
 		var self = this;
 		var db = req.site.models.user;
@@ -466,42 +481,42 @@ var controller = Parent.extend({
 		var user = null;
 
 		// supporting flash middleware
-		this.alert = alerts( req, res );
+		this.alert = alerts(req, res);
 
 		// user can either be a cid or an id
 		var actions = [
 			// most likely it's a common id
-			function( done ){
+			function (done) {
 				// db lookup
-				db.findOne({ cid: uid }, function( err, result ){
+				db.findOne({ cid: uid }, function (err, result) {
 					// error control?
 					// data clean up?
-					if( result ) user = result;
+					if (result) user = result;
 					// continue...
 					done();
 				});
 			},
 			// legacy fallback
-			function( done ){
-				if( user ) return done();
+			function (done) {
+				if (user) return done();
 				// db lookup
-				db.findOne({ id: uid }, function( err, result ){
+				db.findOne({ id: uid }, function (err, result) {
 					// error control?
 					// data clean up?
-					if( result ) user = result;
+					if (result) user = result;
 					// continue...
 					done();
 				});
 			}
 		];
 
-		async.series( actions, function( err, results ){
-			if( !user ) return res.redirect('/');
+		async.series(actions, function (err, results) {
+			if (!user) return res.redirect('/');
 			// if already active move on
-			if( user.active ) {
+			if (user.active) {
 				self.alert("info", "Account already active. Please login");
 			} else {
-			// activate account (don't wait?)
+				// activate account (don't wait?)
 				db.update({
 					id: user.id,
 					active: 1
@@ -526,26 +541,26 @@ var controller = Parent.extend({
 
 	// Internal methods
 
-	_encryptPassword: function( password ){
+	_encryptPassword: function (password) {
 		// basic password encryption using brypt
-		return bcrypt.hashSync( password, 10 );
+		return bcrypt.hashSync(password, 10);
 	},
 
-	_deleteData: function( model, id ){
+	_deleteData: function (model, id) {
 
-		return function( next ){
+		return function (next) {
 
-			model.read({ uid : id }, function( err, data ){
-				if( !data ) next(null);
+			model.read({ uid: id }, function (err, data) {
+				if (!data) next(null);
 				// convert to an array if returning a single object
 				data = (data instanceof Array) ? data : [data];
 				//
 				var count = 0;
-				for(var i in data){
-					model.delete({ id : data[i].id }, function(err, result){
+				for (var i in data) {
+					model.delete({ id: data[i].id }, function (err, result) {
 						count++;
 						//
-						if(count == data.length) next(null);
+						if (count == data.length) next(null);
 					});
 				}
 
@@ -554,26 +569,26 @@ var controller = Parent.extend({
 		};
 	},
 
-	_renderComplete: function( req, res ){
+	_renderComplete: function (req, res) {
 		// get user
-		var user = ( typeof req.user != "undefined" ) ? req.user : false;
+		var user = (typeof req.user != "undefined") ? req.user : false;
 		// set template vars
-		if( !user.email ){
+		if (!user.email) {
 			res.locals.noEmail = true;
 		} else {
 			res.locals.email = user.email;
 		}
 		// alerts
-		res.locals.alerts = alerts( req, res )(); // output
+		res.locals.alerts = alerts(req, res)(); // output
 		//res.template = "main";
 		res.view = "account-complete";
 		// render
-		this.render( req, res );
+		this.render(req, res);
 	},
 
-	_renderRegister: function( req, res ){
+	_renderRegister: function (req, res) {
 		// check if we want to return to a specific page
-		if( req.query.redirect ) {
+		if (req.query.redirect) {
 			// save to session
 			req.session._account_login_redirect = req.query.redirect;
 		}
@@ -583,7 +598,7 @@ var controller = Parent.extend({
 		res.locals.name = data.name || "";
 		res.locals.email = data.email || "";
 		// alerts
-		res.locals.alerts = alerts( req, res )(); // output
+		res.locals.alerts = alerts(req, res)(); // output
 
 		res.view = "account-register";
 		// local vars
@@ -591,63 +606,63 @@ var controller = Parent.extend({
 		res.locals.useTwitter = this._findAPI("twitter", req.site);
 
 		// render
-		this.render( req, res );
+		this.render(req, res);
 	},
 
 
 	// Events
 
 	// - when the account is created (unverified)
-	onCreate: function(req, res){
+	onCreate: function (req, res) {
 
 	},
 
 	// - when a user has successfullt logged in
-	onLogin: function(req, res){
+	onLogin: function (req, res) {
 
 	},
 
 	// - when an account has been deleted
-	onDelete: function(req, res){
+	onDelete: function (req, res) {
 
 	},
 
 	// - when an account has been verified
-	postRegister: function(req, res){
+	postRegister: function (req, res) {
 		// override with your own custom method
 	},
 
 	// Private
 
-	_onCreate: function(req, res){
+	_onCreate: function (req, res) {
 		this.onCreate(req, res);
 	},
 
 	// - when a user has successfully logged in
-	_onLogin: function(req, res){
+	_onLogin: function (req, res) {
 		this.onLogin(req, res);
 	},
 
 	// - when an account has been deleted
-	_onDelete: function(req, res){
+	_onDelete: function (req, res) {
 		this.onDelete(req, res);
 	},
 
-	_postRegister: function(req, res){
+	_postRegister: function (req, res) {
 		this.postRegister(req, res);
 	},
 
-	_findAPI: function( name, site){
+	_findAPI: function (name, site) {
 		try {
-			return (typeof site.config.api[name] == "object" );
-		} catch( e ) {
+			return (typeof site.config.api[name] == "object");
+		} catch (e) {
 			//( req.site.config.api.twitter )
 			return false;
 		}
 	},
 
-	_validateData: function( data ){
-		if( _.isEmpty(data.password) || data.password !== data.password_confirm ){
+	_validateData: function (data) {
+		if (_.isEmpty(data.password) || data.password !== data.password_confirm) {
 			// show alert
 			this.alert("error", "The passwords didn't match");
 			return false;
@@ -659,22 +674,22 @@ var controller = Parent.extend({
 
 // Helpers
 
-function alerts( req, res ){
+function alerts(req, res) {
 	// thisis the method used to alert messages during validation...
-	return function( type, message ){
-		if( !type ){
+	return function (type, message) {
+		if (!type) {
 			// output
-			if( req.flash ){
+			if (req.flash) {
 				res.locals.alerts = req.flash();
-			} else{
+			} else {
 				// already set...
 			}
 			return res.locals.alerts;
 		} else {
 			// support flash middleware
-			if( req.flash ){
+			if (req.flash) {
 				req.flash(type, message);
-			} else{
+			} else {
 				// bare object
 				res.locals.alerts = res.locals.alerts || {};
 				res.locals.alerts[type] = res.locals.alerts[type] || [];
