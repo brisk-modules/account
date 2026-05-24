@@ -25,7 +25,7 @@
 	"engines": { "node": ">=10.x.x" },
 	"main": "index",
 	"dependencies": {
-		"async": "3.0.1",
+		"async": "3.2.2",
 		"bcrypt": "5.x.x",
 		"brisk": "1.x.x",
 		"gravatar": "1.1.1",
