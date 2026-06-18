@@ -30,7 +30,7 @@
 		"brisk": "1.x.x",
 		"gravatar": "1.1.1",
 		"hbs": "4.0.4",
-		"nodemailer": "6.2.1",
+		"nodemailer": "8.0.9",
 		"nodemailer-ses-transport": "1.5.1",
 		"passport": "0.3.2",
 		"passport-facebook": "2.1.0",
